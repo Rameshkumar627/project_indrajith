@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, _, exceptions
+from datetime import datetime
 
 
 PROGRESS_INFO = [('draft', 'Draft'), ('wha', 'Waiting For HOD'),

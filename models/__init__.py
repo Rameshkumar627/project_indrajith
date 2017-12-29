@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from . import user
-from . import partner
-from . import department
-from . import period
+from . import common
 from . import product
+from . import stores
 from . import purchase
+
 
