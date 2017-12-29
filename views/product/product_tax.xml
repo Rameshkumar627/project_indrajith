@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_product_tax_from">
+		<field name="name">product.tax.form</field>
+		<field name="model">product.tax</field>
+		<field name="arch" type="xml">
+			<form string="Product Tax">
+				<sheet>
+					<separator string="Product Tax" style="text-align:center;"/>
+					<group>
+						<field name="name"/>
+						<field name="code"/>
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_product_tax_tree">
+		<field name="name">product.tax.tree</field>
+		<field name="model">product.tax</field>
+		<field name="arch" type="xml">
+			<tree string="Product Tax">
+				<field name="name"/>
+				<field name="code"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_product_tax">
+        <field name="name">Product Tax</field>
+        <field name="res_model">product.uom</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

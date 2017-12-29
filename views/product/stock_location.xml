@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_stock_location_from">
+		<field name="name">stock.location.form</field>
+		<field name="model">stock.location</field>
+		<field name="arch" type="xml">
+			<form string="Stock Location">
+				<sheet>
+					<separator string="Stock Location" style="text-align:center;"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                    </group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_stock_location_tree">
+		<field name="name">stock.location.tree</field>
+		<field name="model">stock.location</field>
+		<field name="arch" type="xml">
+			<tree string="Stock Location">
+				<field name="name"/>
+                <field name="name"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_stock_location">
+        <field name="name">Stock Location</field>
+        <field name="res_model">stock.location</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

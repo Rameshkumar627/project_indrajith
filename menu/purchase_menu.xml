@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--Product Menu-->
+    <menuitem name="Purchase Indent"
+              id="purchase_indent_menu"
+              parent="purchase_menu"
+              action="action_purchase_indent"
+              sequence="10"/>
+
+</odoo>

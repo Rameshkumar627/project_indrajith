@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_product_uom_from">
+		<field name="name">product.uom.form</field>
+		<field name="model">product.uom</field>
+		<field name="arch" type="xml">
+			<form string="Product UOM">
+				<sheet>
+					<separator string="Product UOM" style="text-align:center;"/>
+					<group>
+						<field name="name"/>
+						<field name="code"/>
+					</group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_product_uom_tree">
+		<field name="name">product.uom.tree</field>
+		<field name="model">product.uom</field>
+		<field name="arch" type="xml">
+			<tree string="Product UOM">
+				<field name="name"/>
+				<field name="code"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_product_uom">
+        <field name="name">Product UOM</field>
+        <field name="res_model">product.uom</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

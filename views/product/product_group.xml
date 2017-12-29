@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_product_group_from">
+		<field name="name">product.group.form</field>
+		<field name="model">product.group</field>
+		<field name="arch" type="xml">
+			<form string="Product Group">
+				<sheet>
+					<separator string="Product Group" style="text-align:center;"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                    </group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_product_group_tree">
+		<field name="name">product.group.tree</field>
+		<field name="model">product.group</field>
+		<field name="arch" type="xml">
+			<tree string="Product Group">
+				<field name="name"/>
+				<field name="code"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_product_group">
+        <field name="name">Product Group</field>
+        <field name="res_model">product.group</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

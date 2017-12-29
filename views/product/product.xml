@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_product_product_from">
+		<field name="name">product.product.form</field>
+		<field name="model">product.product</field>
+		<field name="arch" type="xml">
+			<form string="Product">
+				<header>
+					<field name="progress" widget="statusbar"/>
+					<button name="trigger_approve" string="Confirm" type="object"/>
+				</header>
+				<sheet>
+					<separator string="Product" style="text-align:center;"/>
+					<field name="code" readonly="1"/>
+					<group>
+						<field name="name"/>
+						<field name="group_id"/>
+						<field name="sub_group_id"/>
+						<field name="uom_id"/>
+					</group>
+					<notebook>
+						<page string="Sales Details">
+							<field name="sale_ids">
+								<tree editable="bottom">
+									<field name="from_date"/>
+									<field name="till_date"/>
+									<field name="price"/>
+								</tree>
+							</field>
+						</page>
+						<page string="Purchase Details">
+							<field name="purchase_ids">
+								<tree editable="bottom">
+									<field name="date" readonly="1"/>
+									<field name="po_ref" readonly="1"/>
+									<field name="vendor_id" readonly="1"/>
+									<field name="price" readonly="1"/>
+								</tree>
+							</field>
+						</page>
+						<page string="Stock Details">
+							<field name="stock_ids">
+								<tree editable="bottom">
+									<field name="group_id" readonly="1"/>
+									<field name="sub_group_id" readonly="1"/>
+									<field name="location_id" readonly="1"/>
+									<field name="quantity" readonly="1"/>
+								</tree>
+							</field>
+
+						</page>
+					</notebook>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_product_product_tree">
+		<field name="name">product.product.tree</field>
+		<field name="model">product.product</field>
+		<field name="arch" type="xml">
+			<tree string="Product">
+				<field name="name"/>
+				<field name="code"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_product_product">
+        <field name="name">Product</field>
+        <field name="res_model">product.product</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>
+
+

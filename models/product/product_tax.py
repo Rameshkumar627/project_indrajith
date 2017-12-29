@@ -10,3 +10,11 @@ class ProductTax(models.Model):
     name = fields.Char(string='Tax', required=True)
     code = fields.Char(string='Code', required=True)
 
+    @api.multi
+    @api.depends('name', 'code')
+    def name_get(self):
+        result = []
+        for record in self:
+            name = '{1} - [{0}]'.format(record.name, record.code)
+            result.append((record.id, name))
+        return result

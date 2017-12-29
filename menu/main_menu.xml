@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--Product-->
+    <menuitem name="Product" id="product_menu" sequence="10"/>
+
+    <!--Purchase-->
+    <menuitem name="Purchase" id="purchase_menu" sequence="20"/>
+
+</odoo>

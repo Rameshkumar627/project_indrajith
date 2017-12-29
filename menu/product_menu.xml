@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--Product Menu-->
+    <menuitem name="Product"
+              id="product_product_menu"
+              parent="product_menu"
+              action="action_product_product"
+              sequence="10"/>
+
+    <menuitem name="Product Group"
+              id="product_group_menu"
+              parent="product_menu"
+              action="action_product_group"
+              sequence="20"/>
+
+    <menuitem name="Product Sub Group"
+              id="product_sub_group_menu"
+              parent="product_menu"
+              action="action_product_sub_group"
+              sequence="30"/>
+
+    <menuitem name="Product UOM"
+              id="product_uom_menu"
+              parent="product_menu"
+              action="action_product_uom"
+              sequence="40"/>
+
+    <menuitem name="Product Tax"
+              id="product_tax_menu"
+              parent="product_menu"
+              action="action_product_tax"
+              sequence="50"/>
+
+    <menuitem name="Stock"
+              id="product_stock_menu"
+              parent="product_menu"
+              action="action_product_stock"
+              sequence="60"/>
+
+    <menuitem name="Stock Location"
+              id="stock_location_menu"
+              parent="product_menu"
+              action="action_stock_location"
+              sequence="70"/>
+
+</odoo>
