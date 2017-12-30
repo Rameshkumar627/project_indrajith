@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_store_issue_from">
+		<field name="name">store.issue.form</field>
+		<field name="model">store.issue</field>
+		<field name="arch" type="xml">
+			<form string="Store Issue">
+                <header>
+                    <button name="trigger_wha" string="Confirm" type="object" class="oe_highlight"
+                            attrs="{'invisible':[('progress', 'not in',['draft'])]}"/>
+                    <button name="trigger_hod_approved" string="Approve" type="object" class="oe_highlight"
+                            attrs="{'invisible':[('progress', 'not in',['wha'])]}"/>
+                    <field name="progress" widget="statusbar"/>
+                </header>
+				<sheet>
+					<separator string="Store Issue" style="text-align:center;"/>
+                    <field name="sequence"/>
+                    <group col="4" colspan="2">
+                        <field name="requested_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
+                        <field name="requested_on" readonly="1"/>
+                        <field name="approved_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
+                        <field name="approved_on" readonly="1"/>
+                        <field name="department_id"/>
+                    </group>
+                    <field name="issue_detail" attrs="{'readonly':[('progress', 'in',['hod_approved', 'cancel', 'closed'])]}">
+                        <tree editable="bottom">
+                            <field name="item_id" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
+                            <field name="uom_id" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
+                            <field name="req_qty" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
+                            <field name="already_issued_qty" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
+                            <field name="issuing_qty" attrs="{'readonly':[('progress', 'not in',['wha'])]}"/>
+                            <field name="progress" invisible="1"/>
+                        </tree>
+                    </field>
+                    <field name="comment" placeholder="Comment.." attrs="{'readonly':[('progress', 'in',['cancel', 'closed'])]}"/>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_store_issue_tree">
+		<field name="name">store.issue.tree</field>
+		<field name="model">store.issue</field>
+		<field name="arch" type="xml">
+			<tree string="Store Issue">
+                <field name="sequence"/>
+                <field name="department_id"/>
+				<field name="requested_by"/>
+                <field name="requested_on"/>
+                <field name="approved_by"/>
+                <field name="approved_on"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_store_issue">
+        <field name="name">Store Issue</field>
+        <field name="res_model">store.issue</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

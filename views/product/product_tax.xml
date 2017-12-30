@@ -11,7 +11,7 @@
 					<separator string="Product Tax" style="text-align:center;"/>
 					<group>
 						<field name="name"/>
-						<field name="code"/>
+						<field name="tax"/>
 					</group>
 				</sheet>
 			</form>
@@ -25,7 +25,7 @@
 		<field name="arch" type="xml">
 			<tree string="Product Tax">
 				<field name="name"/>
-				<field name="code"/>
+				<field name="tax"/>
 			</tree>
 		</field>
 	</record>

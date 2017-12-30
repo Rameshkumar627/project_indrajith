@@ -3,24 +3,24 @@
 from odoo import fields, models, api, _, exceptions
 from datetime import datetime
 
-PROGRESS_INFO = [('draft', 'Draft'), ('wha', 'Waiting For HOD Approval'), ('hod_approved', 'HOD Approved'), 
-                 ('cancel', 'Cancel'), ('closed', 'Closed')]
+PROGRESS_INFO = [('draft', 'Draft'), ('returned', 'Returned'),
+                 ('return_accepted', 'Return Accepted'), ('cancel', 'Cancel')]
 
 
-class StoreRequest(models.Model):
-    _name = 'store.request'
-    _description = 'Store Request'
+class StoreReturn(models.Model):
+    _name = 'store.return'
+    _description = 'Store Return'
 
     date = fields.Date(string='Date', readonly=True)
     sequence = fields.Char(string='Sequence')
-    requested_by = fields.Many2one(comodel_name='res.users', string='Requested By', readonly=True)
-    requested_on = fields.Date(string='Requested On', readonly=True)
-    approved_by = fields.Many2one(comodel_name='res.users', string='Approved By', readonly=True)
-    approved_on = fields.Date(string='Approved On', readonly=True)
+    returned_by = fields.Many2one(comodel_name='res.users', string='Returned By', readonly=True)
+    returned_on = fields.Date(string='Returned On', readonly=True)
+    approved_by = fields.Many2one(comodel_name='res.users', string='Accepted By', readonly=True)
+    approved_on = fields.Date(string='Accepted On', readonly=True)
     progress = fields.Selection(PROGRESS_INFO, default='draft', string='Progress')
-    request_detail = fields.One2many(comodel_name='sr.detail',
-                                     string='Store Request Detail',
-                                     inverse_name='request_id')
+    request_detail = fields.One2many(comodel_name='store.return.detail',
+                                     string='Store Return Detail',
+                                     inverse_name='return_id')
     comment = fields.Text(string='Comment')
 
     def check_progress_access(self):
@@ -49,18 +49,18 @@ class StoreRequest(models.Model):
         obj = self.env['ir.sequence'].sudo()
         self.department_sequence_creation(department_id)
 
-        sequence = obj.next_by_code('purchase.request.{0}'.format(department_id.name))
+        sequence = obj.next_by_code('store.request.{0}'.format(department_id.name))
         period = self.env['period.period'].search([('progress', '=', 'open')])
         return '{0}/{1}'.format(sequence, period.name)
 
     def department_sequence_creation(self, department_id):
         obj = self.env['ir.sequence'].sudo()
-        if not obj.search([('code', '=', 'purchase.indent.{0}'.format(department_id.name))]):
+        if not obj.search([('code', '=', 'store.request.{0}'.format(department_id.name))]):
             seq = {
                 'name': department_id.name,
                 'implementation': 'standard',
-                'code': 'purchase.request.{0}'.format(department_id.name),
-                'prefix': 'PI/{0}/'.format(str(department_id.name)),
+                'code': 'store.request.{0}'.format(department_id.name),
+                'prefix': 'SR/{0}/'.format(str(department_id.name)),
                 'padding': 4,
                 'number_increment': 1,
                 'use_date_range': False,
@@ -70,16 +70,23 @@ class StoreRequest(models.Model):
     @api.multi
     def trigger_wha(self):
         self.check_progress_access()
-        self.write({'progress': 'wha'})
+        data = {
+            'progress': 'wha',
+            'requested_on': datetime.now().strftime('%Y-%m-%d'),
+            'requested_by': self.env.user.id,
+            'sequence': self.create_sequence(),
+        }
+        self.write(data)
 
     @api.multi
     def trigger_hod_approved(self):
         self.check_progress_access()
-        self.write({
+        data = {
             'progress': 'hod_approved',
-            'requested_on': datetime.now().strftime('%Y-%m-%d'),
-            'requested_by': self.env.user.id,
-        })
+            'approved_on': datetime.now().strftime('%Y-%m-%d'),
+            'approved_by': self.env.user.id,
+        }
+        self.write(data)
 
     @api.multi
     def trigger_cancel(self):
@@ -92,9 +99,6 @@ class StoreRequest(models.Model):
         self.write({'progress': 'closed'})
 
     def default_vals_update(self, vals):
-        vals['requested_on'] = datetime.now().strftime('%Y-%m-%d') 
-        vals['requested_by'] = self.env.user.id
-        vals['sequence'] = self.create_sequence()
         vals['date'] = datetime.now().strftime('%Y-%m-%d')
         return vals
 

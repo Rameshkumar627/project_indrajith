@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--Store Menu-->
+    <menuitem name="Stock"
+              id="product_stock_menu"
+              parent="store_menu"
+              action="action_product_stock"
+              sequence="10"/>
+
+    <menuitem name="Stock Location"
+              id="stock_location_menu"
+              parent="store_menu"
+              action="action_stock_location"
+              sequence="20"/>
+
+    <menuitem name="Store Request"
+              id="store_request_menu"
+              parent="store_menu"
+              action="action_store_request"
+              sequence="30"/>
+
+</odoo>

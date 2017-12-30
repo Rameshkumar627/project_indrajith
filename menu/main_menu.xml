@@ -7,4 +7,7 @@
     <!--Purchase-->
     <menuitem name="Purchase" id="purchase_menu" sequence="20"/>
 
+    <!--Store-->
+    <menuitem name="Store" id="store_menu" sequence="30"/>
+
 </odoo>

@@ -10,8 +10,20 @@
 				<header>
 					<field name="progress" widget="statusbar"/>
 					<button name="trigger_approve" string="Confirm" type="object"/>
+					<button name="get_stock_quantity" string="Stock" type="object"/>
 				</header>
 				<sheet>
+					<div class="oe_button_box" name="button_box">
+						<button class="oe_stat_button" name="get_stock_quantity"
+								string="Stock" type="object"
+								icon="fa-shopping-cart"/>
+						<button class="oe_stat_button" name="get_purchase_price"
+								string="Purchase" type="object"
+								icon="fa-shopping-basket"/>
+						<button class="oe_stat_button" name="get_sales_price"
+								string="Sale" type="object"
+								icon="fa-money"/>
+					</div>
 					<separator string="Product" style="text-align:center;"/>
 					<field name="code" readonly="1"/>
 					<group>
@@ -20,38 +32,6 @@
 						<field name="sub_group_id"/>
 						<field name="uom_id"/>
 					</group>
-					<notebook>
-						<page string="Sales Details">
-							<field name="sale_ids">
-								<tree editable="bottom">
-									<field name="from_date"/>
-									<field name="till_date"/>
-									<field name="price"/>
-								</tree>
-							</field>
-						</page>
-						<page string="Purchase Details">
-							<field name="purchase_ids">
-								<tree editable="bottom">
-									<field name="date" readonly="1"/>
-									<field name="po_ref" readonly="1"/>
-									<field name="vendor_id" readonly="1"/>
-									<field name="price" readonly="1"/>
-								</tree>
-							</field>
-						</page>
-						<page string="Stock Details">
-							<field name="stock_ids">
-								<tree editable="bottom">
-									<field name="group_id" readonly="1"/>
-									<field name="sub_group_id" readonly="1"/>
-									<field name="location_id" readonly="1"/>
-									<field name="quantity" readonly="1"/>
-								</tree>
-							</field>
-
-						</page>
-					</notebook>
 				</sheet>
 			</form>
 		</field>

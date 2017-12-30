@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+# sales based on from date-time to till date-time
+# Date-time should not be overlapped
+# create, write, delete Permission restricted to user group
+# Restricted Read access to group level
+
+
 from odoo import models, fields, api, _, exceptions
 
 

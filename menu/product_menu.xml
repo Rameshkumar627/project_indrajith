@@ -32,16 +32,5 @@
               action="action_product_tax"
               sequence="50"/>
 
-    <menuitem name="Stock"
-              id="product_stock_menu"
-              parent="product_menu"
-              action="action_product_stock"
-              sequence="60"/>
-
-    <menuitem name="Stock Location"
-              id="stock_location_menu"
-              parent="product_menu"
-              action="action_stock_location"
-              sequence="70"/>
 
 </odoo>

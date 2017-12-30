@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_product_sales_from">
+		<field name="name">product.sales.form</field>
+		<field name="model">product.sales</field>
+		<field name="arch" type="xml">
+			<form string="Product Sales Price">
+				<sheet>
+					<separator string="Product Sales Price" style="text-align:center;"/>
+                    <group>
+                        <field name="from_date"/>
+                        <field name="till_date"/>
+                        <field name="product_id"/>
+                        <field name="price"/>
+                    </group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_product_sales_tree">
+		<field name="name">product.sales.tree</field>
+		<field name="model">product.sales</field>
+		<field name="arch" type="xml">
+			<tree string="Product Sales Price">
+				<field name="from_date"/>
+				<field name="till_date"/>
+				<field name="product_id"/>
+				<field name="price"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_product_sales">
+        <field name="name">Product Sales Price</field>
+        <field name="res_model">product.sales</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>
