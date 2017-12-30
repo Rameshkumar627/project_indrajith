@@ -13,6 +13,8 @@
                         <field name="name"/>
                         <field name="code"/>
                     </group>
+					<button name="product_stock_location_updation"
+							string="Location Updation" type="object" class="oe_highlight"/>
 				</sheet>
 			</form>
 		</field>
@@ -25,7 +27,7 @@
 		<field name="arch" type="xml">
 			<tree string="Stock Location">
 				<field name="name"/>
-                <field name="name"/>
+                <field name="code"/>
 			</tree>
 		</field>
 	</record>

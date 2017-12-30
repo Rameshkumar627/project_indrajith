@@ -37,7 +37,7 @@ class ProductSubGroup(models.Model):
     def name_get(self):
         result = []
         for record in self:
-            name = '{1} - [{0}]'.format(record.name, record.code)
+            name = '[{0}] - {1}'.format(record.code, record.name)
             result.append((record.id, name))
         return result
 
@@ -49,7 +49,7 @@ class ProductSubGroup(models.Model):
         if len(recs):
             raise exceptions.ValidationError(msg=msg)
         else:
-            self.unlink()
+            res = super(ProductSubGroup, self).unlink()
 
     @api.multi
     def write(self, vals):

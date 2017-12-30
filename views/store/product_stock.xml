@@ -12,6 +12,8 @@
 					<group>
 						<field name="product_id" readonly="1"/>
 						<field name="uom_id" readonly="1"/>
+						<field name="group_id" readonly="1"/>
+						<field name="sub_group_id" readonly="1"/>
 						<field name="location_id" readonly="1"/>
 						<field name="quantity" readonly="1"/>
 					</group>
@@ -28,6 +30,8 @@
 			<tree string="Stock">
 				<field name="product_id"/>
 				<field name="uom_id"/>
+                <field name="group_id"/>
+                <field name="sub_group_id"/>
                 <field name="location_id"/>
                 <field name="quantity"/>
 			</tree>

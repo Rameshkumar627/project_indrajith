@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 from odoo import fields, models, api, _, exceptions
 from datetime import datetime
 
