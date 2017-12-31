@@ -13,8 +13,6 @@
                         <field name="name"/>
                         <field name="code"/>
                     </group>
-					<button name="product_stock_location_updation"
-							string="Location Updation" type="object" class="oe_highlight"/>
 				</sheet>
 			</form>
 		</field>

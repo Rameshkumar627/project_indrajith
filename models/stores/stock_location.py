@@ -6,7 +6,6 @@
 # create, write, delete Permission restricted to user group
 # Any one can read the Stock Location
 # Name includes both name & value
-# On Button click for all product stock location is generated
 
 from odoo import models, fields, api, _, exceptions
 
@@ -17,29 +16,6 @@ class StockLocation(models.Model):
 
     name = fields.Char(string='Location', required=True)
     code = fields.Char(string='Code', required=True)
-
-    def check_stock_location(self):
-        recs = self.env['product.stock'].search([('location_id', '=', self.id)])
-
-        if recs:
-            raise exceptions.ValidationError('Error! You are not authorised to change this record')
-
-    # Button Function
-    @api.multi
-    def product_stock_location_updation(self):
-        ''' Update stock location for each product '''
-        products = self.env['product.product'].search([('id', '>', 0)])
-
-        product_stock_obj = self.env['product.stock']
-        for product in products:
-            rec = product_stock_obj.search([('location_id', '=', self.id), ('product_id', '=', product.id)])
-            if not rec:
-                data = {
-                    'product_id': product.id,
-                    'location_id': self.id,
-                    'quantity': 0,
-                }
-                product_stock_obj.create(data)
 
     # Access Function
     def check_progress_access(self):
@@ -69,14 +45,11 @@ class StockLocation(models.Model):
     @api.multi
     def unlink(self):
         self.check_progress_access()
-        self.check_stock_location()
         raise exceptions.ValidationError('Error! You are not authorised to change this record')
-        return res
 
     @api.multi
     def write(self, vals):
         self.check_progress_access()
-        self.check_stock_location()
         res = super(StockLocation, self).write(vals)
         return res
 

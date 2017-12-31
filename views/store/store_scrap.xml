@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_store_scrap_from">
+		<field name="name">store.scrap.form</field>
+		<field name="model">store.scrap</field>
+		<field name="arch" type="xml">
+			<form string="Store Scrap">
+                <header>
+                    <button name="trigger_scrap" string="Scrap" type="object" class="oe_highlight"
+                            attrs="{'invisible':[('progress', 'not in',['draft'])]}"/>
+                    <field name="progress" widget="statusbar"/>
+                </header>
+				<sheet>
+                    <separator string="Store Scrap" style="text-align:center;"/>
+                    <field name="sequence" readonly="1"/>
+                    <group col="4" colspan="2">
+                        <field name="scraped_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
+                        <field name="scraped_on" readonly="1"/>
+                    </group>
+                    <field name="scrap_detail" attrs="{'readonly':[('progress', 'not in', ['draft'])]}">
+                        <tree editable="bottom">
+                            <field name="item_id" attrs="{'readonly':[('progress', 'in', ['scraped'])]}"/>
+                            <field name="uom_id"
+                                   domain="[('product_ids', '=', item_id)]"
+                                   attrs="{'readonly':[('progress', 'in', ['scraped'])]}"/>
+                            <field name="quantity" attrs="{'readonly':[('progress', 'in', ['scraped'])]}"/>
+                            <field name="scrap_id" invisible="1"/>
+                            <field name="progress" invisible="1"/>
+                        </tree>
+                    </field>
+                    <field name="comment" placeholder="Comment.." attrs="{'readonly':[('progress', 'not in',['draft'])]}"/>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_store_scrap_tree">
+		<field name="name">store.scrap.tree</field>
+		<field name="model">store.scrap</field>
+		<field name="arch" type="xml">
+			<tree string="Store Scrap">
+                <field name="sequence"/>
+                <field name="scraped_by"/>
+				<field name="scraped_on"/>
+                <field name="progress"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_store_scrap">
+        <field name="name">Store Scrap</field>
+        <field name="res_model">store.scrap</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

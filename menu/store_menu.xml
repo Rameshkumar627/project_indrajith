@@ -20,4 +20,10 @@
               action="action_store_request"
               sequence="30"/>
 
+    <menuitem name="Store Scrap"
+              id="store_scrap_menu"
+              parent="store_menu"
+              action="action_store_scrap"
+              sequence="40"/>
+
 </odoo>

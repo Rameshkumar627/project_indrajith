@@ -6,11 +6,9 @@
 # create, write, delete Permission restricted to user group
 # Special Button for sale/ Purchase/ Stock
 # All User have read permission on Product
-# Stock for each location is created once product is confirmed
+# Stock for each location and UOM is created on write
 
 from odoo import models, fields, api, _, exceptions
-
-PROGRESS_INFO = [('draft', 'Draft'), ('confirmed', 'Confirmed')]
 
 
 class Product(models.Model):
@@ -21,8 +19,8 @@ class Product(models.Model):
     sub_group_id = fields.Many2one(comodel_name='product.sub.group', string='Product Sub Group', required=True)
     name = fields.Char(string='Product', required=True)
     code = fields.Char(string='Code', reaonly=True)
-    uom_id = fields.Many2one(comodel_name='product.uom', string='Product UOM', required=True)
-    progress = fields.Selection(PROGRESS_INFO, default='draft', string='Progress')
+    uom_ids = fields.Many2many(comodel_name='product.uom', string='Product UOM', required=True)
+    location_ids = fields.Many2many(comodel_name='stock.location', string='Stock Location', required=True)
     active = fields.Boolean(string='Active', default=True)
 
     def get_sequence(self):
@@ -46,30 +44,30 @@ class Product(models.Model):
             }
             obj.create(seq)
 
-    def create_product_stock(self):
-        locations = self.env['stock.location'].search([('id', '>', 0)])
-
+    def create_product_stock(self, self_id):
         stock_obj = self.env['product.stock']
-        for location in locations:
-            data = {
-                'product_id': self.id,
-                'group_id': self.group_id.id,
-                'sub_group_id': self.sub_group_id.id,
-                'location_id': location.id,
-                'quantity': 0
-            }
-            stock_obj.create()
+        recs = self.uom_ids
 
-    # Button Action
-    @api.multi
-    def trigger_confirm(self):
-        self.check_progress_access()
-        data = {
-            'progress': 'Confirmed',
-            'code': self.get_sequence()
-        }
-        self.write(data)
-        self.create_product_stock()
+        for rec in recs:
+            stock_obj.create({
+                'product_id': self.id,
+                'uom_id': rec.id,
+                'location_id.name': 'Main Store',
+                'quantity': 0
+            })
+
+            for location in self.location_ids:
+                record = stock_obj.search([('product_id', '=', self_id),
+                                           ('uom_id', '=', rec.id),
+                                           ('location_id', '=', location.id)])
+                if not record:
+                    data = {
+                        'product_id': self.id,
+                        'uom_id': rec.id,
+                        'location_id': location.id,
+                        'quantity': 0
+                    }
+                    stock_obj.create(data)
 
     # Special Button
     def get_sales_price(self):
@@ -113,11 +111,7 @@ class Product(models.Model):
 
     # Access Function
     def check_progress_access(self):
-        if self.progress in ['draft', False]:
-            group_list = ['Product Manager', 'Admin']
-        elif self.progress == 'confirmed':
-            group_list = []
-
+        group_list = ['Product Manager']
         if not self.check_group_access(group_list):
             raise exceptions.ValidationError('Error! You are not authorised to change this record')
 
@@ -130,6 +124,7 @@ class Product(models.Model):
                 status = True
         return status
 
+    # Default Function
     @api.multi
     @api.depends('name', 'code')
     def name_get(self):
@@ -148,12 +143,15 @@ class Product(models.Model):
     def write(self, vals):
         self.check_progress_access()
         res = super(Product, self).write(vals)
+        self.create_product_stock(self.id)
         return res
 
     @api.model
     def create(self, vals):
         self.check_progress_access()
+        vals['code'] = self.get_sequence()
         res = super(Product, self).create(vals)
+        self.create_product_stock(res)
         return res
 
     _sql_constraints = [

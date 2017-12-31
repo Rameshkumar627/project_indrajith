@@ -13,25 +13,36 @@
                     <button name="trigger_hod_approved" string="Approve" type="object" class="oe_highlight"
                             attrs="{'invisible':[('progress', 'not in',['wha'])]}"/>
                     <button name="trigger_cancel" string="Cancel" type="object" class="oe_highlight"
-                            attrs="{'invisible':[('progress', 'in',['draft', 'closed', 'cancel'])]}"/>
+                            attrs="{'invisible':[('progress', 'not in',['wha', 'hod_approved'])]}"/>
+                    <button name="trigger_closed" string="Close" type="object" class="oe_highlight"
+                            attrs="{'invisible':[('progress', 'not in',['hod_approved'])]}"/>
                     <field name="progress" widget="statusbar"/>
                 </header>
 				<sheet>
+                    <div class="oe_button_box" name="button_box">
+						<button class="oe_stat_button" name="smart_store_issue"
+								string="Stock" type="object"
+								icon="fa-shopping-cart"/>
+					</div>
 					<separator string="Store Request" style="text-align:center;"/>
-                    <field name="sequence"/>
+                    <field name="sequence" readonly="1"/>
                     <group col="4" colspan="2">
                         <field name="requested_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
                         <field name="requested_on" readonly="1"/>
                         <field name="approved_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
                         <field name="approved_on" readonly="1"/>
-                        <field name="department_id"/>
+                        <field name="department_id" readonly="1"/>
+                        <field name="location_id" attrs="{'readonly':[('progress', 'not in',['draft'])]}"/>
                     </group>
                     <field name="request_detail" attrs="{'readonly':[('progress', 'in',['hod_approved', 'cancel', 'closed'])]}">
                         <tree editable="bottom">
                             <field name="item_id" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
-                            <field name="uom_id" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
+                            <field name="uom_id"
+                                   domain="[('product_ids', '=', item_id)]"
+                                   attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
                             <field name="req_qty" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
                             <field name="acc_qty" attrs="{'readonly':[('progress', 'not in',['wha'])]}"/>
+                            <field name="request_id" invisible="1"/>
                             <field name="progress" invisible="1"/>
                         </tree>
                     </field>
@@ -53,6 +64,7 @@
                 <field name="requested_on"/>
                 <field name="approved_by"/>
                 <field name="approved_on"/>
+                <field name="progress"/>
 			</tree>
 		</field>
 	</record>

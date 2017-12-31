@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
 
+# No Duplicate in sequence
+# On create include requested by, requested on, department and check access
+# On write only check access
+# On delete check access, no delete when sequence created
+# On confirmation sequence created and applied for HOD
+# Hod can approve/ cancel
+# User can close after HOD approval
+# Before cancellation check for any store issue
+# Smart Button to show all issue based on this request
 
 from odoo import fields, models, api, _, exceptions
 from datetime import datetime
 
 PROGRESS_INFO = [('draft', 'Draft'),
                  ('wha', 'Waiting For HOD Approval'),
-                 ('hod_approved', 'HOD Approved'),
                  ('cancel', 'Cancel'),
+                 ('hod_approved', 'HOD Approved'),
                  ('closed', 'Closed')]
 
 
@@ -17,6 +26,7 @@ class StoreRequest(models.Model):
 
     sequence = fields.Char(string='Sequence', readonly=True)
     department_id = fields.Many2one(comodel_name='hospital.department', string='Department')
+    location_id = fields.Many2one(comodel_name='stock.location', string='Location', required=True)
     requested_by = fields.Many2one(comodel_name='res.users', string='Requested By', readonly=True)
     requested_on = fields.Date(string='Requested On', readonly=True)
     approved_by = fields.Many2one(comodel_name='res.users', string='Approved By', readonly=True)
@@ -27,13 +37,25 @@ class StoreRequest(models.Model):
                                      inverse_name='request_id')
     comment = fields.Text(string='Comment')
 
+    def default_vals_update(self, vals):
+        vals['requested_by'] = self.env.user.id
+        vals['requested_on'] = datetime.now().strftime('%Y-%m-%d')
+        vals['department_id'] = self.env.user.department_id.id
+        return vals
+
+    def check_store_issue(self):
+        recs = self.env['store.issue'].search([('request_id', '=', self.id)])
+        if recs:
+            raise exceptions.ValidationError('''Error! You can close this record, 
+                                                since the store already issue for this request''')
+
     def check_progress_access(self):
-        if self.progress == 'draft':
+        if self.progress in ['draft', False]:
             group_list = ['Hospital User', 'Admin']
         elif self.progress == 'wha':
             group_list = ['Hospital HOD', 'Admin']
         elif self.progress == 'hod_approved':
-            group_list = ['Hospital Store', 'Admin']
+            group_list = ['Hospital User', 'Admin']
 
         if not self.check_group_access(group_list):
             raise exceptions.ValidationError('Error! You are not authorised to change this record')
@@ -69,6 +91,7 @@ class StoreRequest(models.Model):
             }
             obj.create(seq)
 
+    # Button Action
     @api.multi
     def trigger_wha(self):
         self.check_progress_access()
@@ -76,6 +99,7 @@ class StoreRequest(models.Model):
             'progress': 'wha',
             'requested_on': datetime.now().strftime('%Y-%m-%d'),
             'requested_by': self.env.user.id,
+            'department_id': self.env.user.department_id.id,
             'sequence': self.create_sequence(),
         }
         self.write(data)
@@ -93,7 +117,7 @@ class StoreRequest(models.Model):
     @api.multi
     def trigger_cancel(self):
         self.check_progress_access()
-        '''Check any transaction store issue for partially receipt'''
+        self.check_store_issue()
         self.write({'progress': 'cancel'})
 
     @api.multi
@@ -102,10 +126,27 @@ class StoreRequest(models.Model):
         self.write({'progress': 'closed'})
 
     @api.multi
+    def smart_store_issue(self):
+        view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_store_request_tree')[1]
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Store Issue',
+            'view_mode': 'tree',
+            'view_type': 'tree,form',
+            'view_id': view_id,
+            'domain': [('request_id', '=', self.id)],
+            'res_model': 'store.issue',
+            'target': 'current',
+        }
+
+    # Default Function
+    @api.multi
     def unlink(self):
         self.check_progress_access()
         if not self.progress:
             res = super(StoreRequest, self).unlink()
+        else:
+            raise exceptions.ValidationError('Error! You are not authorised to change this record')
         return res
 
     @api.multi
@@ -117,6 +158,7 @@ class StoreRequest(models.Model):
     @api.model
     def create(self, vals):
         self.check_progress_access()
+        vals = self.default_vals_update(vals)
         res = super(StoreRequest, self).create(vals)
         return res
 
@@ -125,9 +167,9 @@ class SRDetail(models.Model):
     _name = 'sr.detail'
     _description = 'Store Request Detail'
 
-    item_id = fields.Many2one(comodel_name='product.product', string='Item')
-    uom_id = fields.Many2one(comodel_name='product.uom', string='UOM')
-    req_qty = fields.Float(string='Requested Quantity')
+    item_id = fields.Many2one(comodel_name='product.product', string='Item', required=True)
+    uom_id = fields.Many2one(comodel_name='product.uom', string='UOM', required=True)
+    req_qty = fields.Float(string='Requested Quantity', required=True)
     acc_qty = fields.Float(string='Accepted Quantity')
     request_id = fields.Many2one(comodel_name='store.request', string='Store Request')
     progress = fields.Char(string='Progress', compute='get_progress', store=False)

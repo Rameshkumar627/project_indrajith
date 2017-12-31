@@ -17,6 +17,8 @@ class ProductUOM(models.Model):
     name = fields.Char(string='UOM', required=True)
     code = fields.Char(string='Code', required=True)
 
+    product_ids = fields.Many2many(comodel_name='product.product')
+
     # Access Function
     def check_progress_access(self):
         group_list = ['Product Manager']

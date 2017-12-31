@@ -7,11 +7,6 @@
 		<field name="model">product.product</field>
 		<field name="arch" type="xml">
 			<form string="Product">
-				<header>
-					<field name="progress" widget="statusbar"/>
-					<button name="trigger_approve" string="Confirm" type="object"/>
-					<button name="get_stock_quantity" string="Stock" type="object"/>
-				</header>
 				<sheet>
 					<div class="oe_button_box" name="button_box">
 						<button class="oe_stat_button" name="get_stock_quantity"
@@ -30,7 +25,8 @@
 						<field name="name"/>
 						<field name="group_id"/>
 						<field name="sub_group_id"/>
-						<field name="uom_id"/>
+						<field name="uom_ids" widget="many2many_tags"/>
+						<field name="location_ids" widget="many2many_tags"/>
 					</group>
 				</sheet>
 			</form>
@@ -45,6 +41,8 @@
 			<tree string="Product">
 				<field name="name"/>
 				<field name="code"/>
+				<field name="group_id"/>
+				<field name="sub_group_id"/>
 			</tree>
 		</field>
 	</record>
