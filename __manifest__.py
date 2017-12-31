@@ -24,6 +24,7 @@
         'views/store/product_stock.xml',
         'views/store/stock_location.xml',
         'views/store/store_request.xml',
+        'views/store/store_issue.xml',
         'views/store/store_scrap.xml',
         'menu/store_menu.xml',
         'views/purchase/indent.xml',

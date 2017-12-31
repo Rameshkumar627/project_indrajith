@@ -31,6 +31,9 @@ class StoreScrap(models.Model):
     def store_reduction(self):
         recs = self.scrap_detail
         for rec in recs:
+            rec.check_stock()
+
+        for rec in recs:
             rec.stock_reduction()
 
     # Access Function
@@ -124,14 +127,23 @@ class SSDetail(models.Model):
         for rec in self:
             rec.progress = rec.request_id.progress
 
+    def check_stock(self):
+        stock_obj = self.env['product.stock']
+        store_stock = stock_obj.search([('product_id', '=', self.item_id.id),
+                                        ('location_id.name', '=', 'Store'),
+                                        ('uom_id', '=', self.uom_id.id)])
+
+        reduce_quantity = store_stock.quantity - self.quantity
+
+        if reduce_quantity <= 0:
+            raise exceptions.ValidationError('Error! Store Quantity is lesser than scrap quantity')
+
     def stock_reduction(self):
         stock_obj = self.env['product.stock']
         stock = stock_obj.search([('product_id', '=', self.item_id.id),
                                   ('location_id.name', '=', 'Store'),
                                   ('uom_id', '=', self.uom_id.id)])
 
-        quantity = stock.quantity - self.quantity
-        if quantity <= 0:
-            raise exceptions.ValidationError('Error! Store Quantity is lesser than scrap quantity')
-        else:
-            stock.write({'quantity': quantity})
+        # Reduction stock
+        reduce_quantity = stock.quantity - self.quantity
+        stock.write({'quantity': reduce_quantity})

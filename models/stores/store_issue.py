@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+# stock move from store to location described in store request
+# No unlink after sequence
+# create, write, unlink needs access
+# check stock before reduction(reduction in store, addition in location)
+# On creation update requested by, requested on, department, location, product and already issued quantity
+
 from odoo import fields, models, api, _, exceptions
 from datetime import datetime
 
@@ -13,6 +19,7 @@ class StoreIssue(models.Model):
     sequence = fields.Char(string='Sequence', readonly=True)
     request_id = fields.Many2one(comodel_name='store.request', string='Store Request', reaquired=True)
     department_id = fields.Many2one(comodel_name='hospital.department', string='Department', readonly=True)
+    location_id = fields.Many2one(comodel_name='stock.location', string='Location', readonly=True)
     requested_by = fields.Many2one(comodel_name='res.users', string='Requested By', readonly=True)
     requested_on = fields.Date(string='Requested On', readonly=True)
     issued_by = fields.Many2one(comodel_name='res.users', string='Issued By', readonly=True)
@@ -23,13 +30,14 @@ class StoreIssue(models.Model):
                                    inverse_name='issue_id')
     comment = fields.Text(string='Comment')
 
+    # Logic Function
     def stock_reduction(self):
-        ''' Check Stock before reduction'''
         recs = self.issue_detail
         for rec in recs:
             rec.check_stock()
 
-        '''Reduce Stock if avaiable'''
+        for rec in recs:
+            rec.stock_reduction()
 
     @api.multi
     def trigger_issued(self):
@@ -44,6 +52,7 @@ class StoreIssue(models.Model):
         self.write(data)
 
     def check_progress_access(self):
+        group_list = []
         if self.progress in ['draft', 'issued']:
             group_list = ['Store User', 'Admin']
 
@@ -86,6 +95,7 @@ class StoreIssue(models.Model):
         vals['requested_by'] = sr.requested_by.id
         vals['requested_on'] = sr.requested_on
         vals['department_id'] = sr.department_id.id
+        vals['location_id'] = sr.location_id.id
 
         return vals
 
@@ -151,7 +161,31 @@ class SIDetail(models.Model):
             rec.progress = rec.request_id.progress
 
     def check_stock(self):
-        pass
-        # self.env['product.stock'].search([('product_id', '=', self.item_id.id),
-        #                                   ('product_id.uom_id', '=', self.uom_id.id),
-        #                                   ('location_id', '=', )])
+        stock_obj = self.env['product.stock']
+        store_stock = stock_obj.search([('product_id', '=', self.item_id.id),
+                                        ('location_id.name', '=', 'Store'),
+                                        ('uom_id', '=', self.uom_id.id)])
+
+        reduce_quantity = store_stock.quantity - self.issuing_qty
+
+        if reduce_quantity <= 0:
+            raise exceptions.ValidationError('Error! Store Quantity is lesser than issue quantity')
+
+    def stock_reduction(self):
+        stock_obj = self.env['product.stock']
+
+        location_stock_obj = stock_obj.search([('product_id', '=', self.item_id.id),
+                                               ('location_id.name', '=', self.issue_id.location_id.id),
+                                               ('uom_id', '=', self.uom_id.id)])
+
+        store_stock = stock_obj.search([('product_id', '=', self.item_id.id),
+                                        ('location_id.name', '=', 'Store'),
+                                        ('uom_id', '=', self.uom_id.id)])
+
+        # Stock Reduction
+        reduce_quantity = store_stock.quantity - self.issuing_qty
+        store_stock.write({'quantity': reduce_quantity})
+
+        # Stock Addition in requested location
+        add_quantity = location_stock_obj + self.issuing_qty
+        location_stock_obj.write({'quantity': add_quantity})

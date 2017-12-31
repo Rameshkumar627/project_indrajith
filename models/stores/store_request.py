@@ -43,6 +43,9 @@ class StoreRequest(models.Model):
         vals['department_id'] = self.env.user.department_id.id
         return vals
 
+    def check_product_stock_location(self):
+        pass
+
     def check_store_issue(self):
         recs = self.env['store.issue'].search([('request_id', '=', self.id)])
         if recs:
@@ -95,6 +98,7 @@ class StoreRequest(models.Model):
     @api.multi
     def trigger_wha(self):
         self.check_progress_access()
+        self.check_product_stock_location()
         data = {
             'progress': 'wha',
             'requested_on': datetime.now().strftime('%Y-%m-%d'),
@@ -177,6 +181,15 @@ class SRDetail(models.Model):
     def get_progress(self):
         for rec in self:
             rec.progress = rec.request_id.progress
+
+    def check_product_stock_location(self):
+        stock_obj = self.env['product.stock']
+        product_stock = stock_obj.search([('product_id', '=', self.item_id.id),
+                                          ('uom_id', '=', self.uom_id.id),
+                                          ('location_id', '=', self.request_id.location_id.id)])
+
+        if not product_stock:
+            raise exceptions.ValidationError('Error! Stock Location for the Product: {0} is not available'.format(self.item_id.name))
 
     _sql_constraints = [
         ('duplicate_product', 'unique (item_id, uom_id, request_id)', "Duplicate Product"),

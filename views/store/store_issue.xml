@@ -8,10 +8,8 @@
 		<field name="arch" type="xml">
 			<form string="Store Issue">
                 <header>
-                    <button name="trigger_wha" string="Confirm" type="object" class="oe_highlight"
+                    <button name="trigger_issued" string="Issue" type="object" class="oe_highlight"
                             attrs="{'invisible':[('progress', 'not in',['draft'])]}"/>
-                    <button name="trigger_hod_approved" string="Approve" type="object" class="oe_highlight"
-                            attrs="{'invisible':[('progress', 'not in',['wha'])]}"/>
                     <field name="progress" widget="statusbar"/>
                 </header>
 				<sheet>
@@ -20,21 +18,23 @@
                     <group col="4" colspan="2">
                         <field name="requested_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
                         <field name="requested_on" readonly="1"/>
-                        <field name="approved_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
-                        <field name="approved_on" readonly="1"/>
-                        <field name="department_id"/>
+                        <field name="issued_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
+                        <field name="issued_on" readonly="1"/>
+                        <field name="department_id" readonly="1"/>
+                        <field name="location_id" readonly="1"/>
+                        <field name="request_id" required="1"/>
                     </group>
-                    <field name="issue_detail" attrs="{'readonly':[('progress', 'in',['hod_approved', 'cancel', 'closed'])]}">
+                    <field name="issue_detail" attrs="{'readonly':[('progress', 'not in',['draft'])]}">
                         <tree editable="bottom">
-                            <field name="item_id" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
-                            <field name="uom_id" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
-                            <field name="req_qty" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
-                            <field name="already_issued_qty" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
-                            <field name="issuing_qty" attrs="{'readonly':[('progress', 'not in',['wha'])]}"/>
+                            <field name="item_id" readonly="1"/>
+                            <field name="uom_id" readonly="1"/>
+                            <field name="req_qty" readonly="1"/>
+                            <field name="already_issued_qty" readonly="1"/>
+                            <field name="issuing_qty" attrs="{'readonly':[('progress', 'in',['issued'])]}"/>
                             <field name="progress" invisible="1"/>
                         </tree>
                     </field>
-                    <field name="comment" placeholder="Comment.." attrs="{'readonly':[('progress', 'in',['cancel', 'closed'])]}"/>
+                    <field name="comment" placeholder="Comment.." attrs="{'readonly':[('progress', 'not in',['draft'])]}"/>
 				</sheet>
 			</form>
 		</field>
@@ -50,8 +50,8 @@
                 <field name="department_id"/>
 				<field name="requested_by"/>
                 <field name="requested_on"/>
-                <field name="approved_by"/>
-                <field name="approved_on"/>
+                <field name="issued_by"/>
+                <field name="issued_on"/>
 			</tree>
 		</field>
 	</record>
