@@ -44,7 +44,10 @@ class StoreRequest(models.Model):
         return vals
 
     def check_product_stock_location(self):
-        pass
+        recs = self.request_detail
+
+        for rec in recs:
+            rec.check_product_stock_location()
 
     def check_store_issue(self):
         recs = self.env['store.issue'].search([('request_id', '=', self.id)])
@@ -53,6 +56,7 @@ class StoreRequest(models.Model):
                                                 since the store already issue for this request''')
 
     def check_progress_access(self):
+        group_list = []
         if self.progress in ['draft', False]:
             group_list = ['Hospital User', 'Admin']
         elif self.progress == 'wha':
@@ -84,7 +88,7 @@ class StoreRequest(models.Model):
         obj = self.env['ir.sequence'].sudo()
         if not obj.search([('code', '=', 'store.request.{0}'.format(department_id.name))]):
             seq = {
-                'name': department_id.name,
+                'name': 'store.request.{0}'.format(department_id.name),
                 'implementation': 'standard',
                 'code': 'store.request.{0}'.format(department_id.name),
                 'prefix': 'SR/{0}/'.format(str(department_id.name)),

@@ -26,6 +26,7 @@
         'views/store/store_request.xml',
         'views/store/store_issue.xml',
         'views/store/store_scrap.xml',
+        'views/store/store_return.xml',
         'menu/store_menu.xml',
         'views/purchase/indent.xml',
         'menu/purchase_menu.xml',

@@ -108,10 +108,13 @@ class StoreIssue(models.Model):
             for issue in issues:
                 already_issued_qty = already_issued_qty + issue.issuing_qty
 
-            data = {'item_id': rec.item_id.id,
-                    'uom_id': rec.uom_id.id,
-                    'req_qty': rec.acc_qty,
-                    'already_issued_qty': already_issued_qty}
+            data = {
+                'item_id': rec.item_id.id,
+                'uom_id': rec.uom_id.id,
+                'req_qty': rec.acc_qty,
+                'already_issued_qty': already_issued_qty,
+                'issue_id': si.id
+            }
 
             si.create(data)
 

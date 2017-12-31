@@ -8,36 +8,40 @@
 		<field name="arch" type="xml">
 			<form string="Purchase Indent">
                 <header>
-                    <field name="progress" widget="status"/>
+                    <button name="trigger_wha" string="Confirm" type="object" class="oe_highlight"
+                            attrs="{'invisible':[('progress', 'not in',['draft'])]}"/>
+                    <button name="trigger_hod_approved" string="Approve" type="object" class="oe_highlight"
+                            attrs="{'invisible':[('progress', 'not in',['wha'])]}"/>
+                    <button name="trigger_cancel" string="Cancel" type="object" class="oe_highlight"
+                            attrs="{'invisible':[('progress', 'not in',['wha', 'hod_approved'])]}"/>
+                    <button name="trigger_closed" string="Close" type="object" class="oe_highlight"
+                            attrs="{'invisible':[('progress', 'not in',['hod_approved'])]}"/>
+                    <field name="progress" widget="statusbar"/>
                 </header>
 				<sheet>
-					<separator string="Purchase Indent" style="text-align:center;"/>
-                    <h1><field name="sequence"/></h1>
-                    <group>
-                        <group>
-                            <field name="date"/>
-                            <field name="raised_by"/>
-                            <field name="approved_by"/>
-                        </group>
-                        <group>
-                            <field name="department_id"/>
-                            <field name="raised_on"/>
-                            <field name="approved_on"/>
-                        </group>
+                    <separator string="Purchase Indent" style="text-align:center;"/>
+                    <field name="sequence" readonly="1"/>
+                    <group col="4" colspan="2">
+                        <field name="requested_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
+                        <field name="requested_on" readonly="1"/>
+                        <field name="approved_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
+                        <field name="approved_on" readonly="1"/>
+                        <field name="department_id" readonly="1"/>
+                        <field name="location_id" attrs="{'readonly':[('progress', 'not in',['draft'])]}"/>
                     </group>
-                    <notebook>
-                        <page string="Indent Detail">
-                            <field name="indent_detail">
-                                <tree editable="bottom">
-                                    <field name="item_id"/>
-                                    <field name="uom_id"/>
-                                    <field name="req_qty"/>
-                                    <field name="acc_qty"/>
-                                </tree>
-                            </field>
-                        </page>
-                    </notebook>
-                    <field name="comment" placeholder="Comment.."/>
+                    <field name="indent_detail" attrs="{'readonly':[('progress', 'in',['hod_approved', 'cancel', 'closed'])]}">
+                        <tree editable="bottom">
+                            <field name="item_id" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
+                            <field name="uom_id"
+                                   domain="[('product_ids', '=', item_id)]"
+                                   attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
+                            <field name="req_qty" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
+                            <field name="acc_qty" attrs="{'readonly':[('progress', 'not in',['wha'])]}"/>
+                            <field name="indent_id" invisible="1"/>
+                            <field name="progress" invisible="1"/>
+                        </tree>
+                    </field>
+                    <field name="comment" placeholder="Comment.." attrs="{'readonly':[('progress', 'in',['cancel', 'closed'])]}"/>
 				</sheet>
 			</form>
 		</field>
@@ -48,12 +52,11 @@
 		<field name="name">purchase.indent.tree</field>
 		<field name="model">purchase.indent</field>
 		<field name="arch" type="xml">
-			<tree string="Purchase Indent">
-				<field name="date"/>
+			<tree string="Store Request">
                 <field name="sequence"/>
-                <field name="raised_by"/>
-                <field name="raised_on"/>
                 <field name="department_id"/>
+				<field name="requested_by"/>
+                <field name="requested_on"/>
                 <field name="approved_by"/>
                 <field name="approved_on"/>
                 <field name="progress"/>
@@ -63,7 +66,7 @@
 
 	<!--Action-->
 	<record model="ir.actions.act_window" id="action_purchase_indent">
-        <field name="name">Purchase Indent</field>
+        <field name="name">Store Request</field>
         <field name="res_model">purchase.indent</field>
         <field name="view_type">form</field>
         <field name="limit">50</field>

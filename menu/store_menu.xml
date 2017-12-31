@@ -32,4 +32,10 @@
               action="action_store_scrap"
               sequence="50"/>
 
+    <menuitem name="Store Return"
+              id="store_return_menu"
+              parent="store_menu"
+              action="action_store_return"
+              sequence="60"/>
+
 </odoo>

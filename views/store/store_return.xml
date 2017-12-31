@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_store_return_from">
+		<field name="name">store.return.form</field>
+		<field name="model">store.return</field>
+		<field name="arch" type="xml">
+			<form string="Store Return">
+                <header>
+                    <button name="trigger_issued" string="Issue" type="object" class="oe_highlight"
+                            attrs="{'invisible':[('progress', 'not in',['draft'])]}"/>
+                    <field name="progress" widget="statusbar"/>
+                </header>
+				<sheet>
+					<separator string="Store Return" style="text-align:center;"/>
+                    <field name="sequence"/>
+                    <group col="4" colspan="2">
+                        <field name="requested_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
+                        <field name="requested_on" readonly="1"/>
+                        <field name="returned_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
+                        <field name="returned_on" readonly="1"/>
+                        <field name="department_id" readonly="1"/>
+                        <field name="location_id" readonly="1"/>
+                        <field name="request_id" required="1"/>
+                    </group>
+                    <field name="return_detail" attrs="{'readonly':[('progress', 'not in',['draft'])]}">
+                        <tree editable="bottom">
+                            <field name="item_id" readonly="1"/>
+                            <field name="uom_id" readonly="1"/>
+                            <field name="returning_qty" attrs="{'readonly':[('progress', 'in',['issued'])]}"/>
+                            <field name="progress" invisible="1"/>
+                        </tree>
+                    </field>
+                    <field name="comment" placeholder="Comment.." attrs="{'readonly':[('progress', 'not in',['draft'])]}"/>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_store_return_tree">
+		<field name="name">store.return.tree</field>
+		<field name="model">store.return</field>
+		<field name="arch" type="xml">
+			<tree string="Store Return">
+                <field name="sequence"/>
+                <field name="department_id"/>
+				<field name="requested_by"/>
+                <field name="requested_on"/>
+                <field name="returned_by"/>
+                <field name="returned_on"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_store_return">
+        <field name="name">Store Return</field>
+        <field name="res_model">store.return</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>
