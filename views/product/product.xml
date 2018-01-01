@@ -7,6 +7,9 @@
 		<field name="model">product.product</field>
 		<field name="arch" type="xml">
 			<form string="Product">
+				<header>
+					<button name="create_product_stock" string="Create Stock" type="object"/>
+				</header>
 				<sheet>
 					<div class="oe_button_box" name="button_box">
 						<button class="oe_stat_button" name="get_stock_quantity"
@@ -23,10 +26,10 @@
 					<field name="code" readonly="1"/>
 					<group>
 						<field name="name"/>
-						<field name="group_id"/>
-						<field name="sub_group_id"/>
-						<field name="uom_ids" widget="many2many_tags"/>
-						<field name="location_ids" widget="many2many_tags"/>
+						<field name="group_id" options='{"no_open": True, "no_create": True}'/>
+						<field name="sub_group_id" options='{"no_open": True, "no_create": True}'/>
+						<field name="uom_ids" widget="many2many_tags" options='{"no_open": True, "no_create": True}'/>
+						<field name="location_ids" widget="many2many_tags" options='{"no_open": True, "no_create": True}'/>
 					</group>
 				</sheet>
 			</form>

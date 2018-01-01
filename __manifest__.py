@@ -29,6 +29,8 @@
         'views/store/store_return.xml',
         'menu/store_menu.xml',
         'views/purchase/indent.xml',
+        'views/purchase/vendor_selection.xml',
+        'views/purchase/quotation_request.xml',
         'menu/purchase_menu.xml',
     ],
     'demo': [

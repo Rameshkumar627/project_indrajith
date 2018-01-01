@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!--Product Menu-->
+    <!--Purchase Menu-->
     <menuitem name="Purchase Indent"
               id="purchase_indent_menu"
               parent="purchase_menu"
               action="action_purchase_indent"
               sequence="10"/>
+
+    <menuitem name="Vendor Selection"
+              id="vendor_selection_menu"
+              parent="purchase_menu"
+              action="action_vendor_selection"
+              sequence="20"/>
+
+    <menuitem name="Quotation Request"
+              id="quotation_request_menu"
+              parent="purchase_menu"
+              action="action_quotation_request"
+              sequence="30"/>
 
 </odoo>

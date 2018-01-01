@@ -27,7 +27,6 @@
                         <field name="approved_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
                         <field name="approved_on" readonly="1"/>
                         <field name="department_id" readonly="1"/>
-                        <field name="location_id" attrs="{'readonly':[('progress', 'not in',['draft'])]}"/>
                     </group>
                     <field name="indent_detail" attrs="{'readonly':[('progress', 'in',['hod_approved', 'cancel', 'closed'])]}">
                         <tree editable="bottom">

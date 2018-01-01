@@ -6,7 +6,9 @@
 # create, write, delete Permission restricted to user group
 # Special Button for sale/ Purchase/ Stock
 # All User have read permission on Product
-# Stock for each location and UOM is created on write
+# Stock for each location and UOM is created on button click(create_product_stock)
+
+# Note Stock location: Store is hard coded
 
 from odoo import models, fields, api, _, exceptions
 
@@ -23,41 +25,47 @@ class Product(models.Model):
     location_ids = fields.Many2many(comodel_name='stock.location', string='Stock Location', required=True)
     active = fields.Boolean(string='Active', default=True)
 
-    def get_sequence(self):
+    def get_sequence(self, group_id, sub_group_id):
         obj = self.env['ir.sequence'].sudo()
-        self.sequence_creation()
 
-        sequence = obj.next_by_code('product.{0}.{1}'.format(self.group_id.code, self.sub_group_id.code))
+        group = self.env['product.group'].search([('id', '=', group_id)])
+        sub_group = self.env['product.sub.group'].search([('id', '=', sub_group_id)])
+
+        self.sequence_creation(group, sub_group)
+
+        sequence = obj.next_by_code('product.{0}.{1}'.format(group.code, sub_group.code))
         return '{0}'.format(sequence)
 
-    def sequence_creation(self):
+    def sequence_creation(self, group, sub_group):
         obj = self.env['ir.sequence'].sudo()
-        if not obj.search([('code', '=', 'product.{0}.{1}'.format(self.group_id.code, self.sub_group_id.code))]):
+        if not obj.search([('code', '=', 'product.{0}.{1}'.format(group.code, sub_group.code))]):
             seq = {
-                'name': 'product.{0}.{1}'.format(self.group_id.code, self.sub_group_id.code),
+                'name': 'product.{0}.{1}'.format(group.code, sub_group.code),
                 'implementation': 'standard',
-                'code': 'product.{0}.{1}'.format(self.group_id.code, self.sub_group_id.code),
-                'prefix': '{0}/{1}/'.format(self.group_id.code, self.sub_group_id.code),
+                'code': 'product.{0}.{1}'.format(group.code, sub_group.code),
+                'prefix': '{0}/{1}/'.format(group.code, sub_group.code),
                 'padding': 4,
                 'number_increment': 1,
                 'use_date_range': False,
             }
             obj.create(seq)
 
-    def create_product_stock(self, self_id):
+    @api.multi
+    def create_product_stock(self):
         stock_obj = self.env['product.stock']
         recs = self.uom_ids
 
         for rec in recs:
+            # Hard Code to create default stock in store
             stock_obj.create({
                 'product_id': self.id,
                 'uom_id': rec.id,
-                'location_id.name': 'Main Store',
+                'location_id': 3,
                 'quantity': 0
             })
 
             for location in self.location_ids:
-                record = stock_obj.search([('product_id', '=', self_id),
+                record = stock_obj.search([('product_id', '=', self.id),
                                            ('uom_id', '=', rec.id),
                                            ('location_id', '=', location.id)])
                 if not record:
@@ -143,17 +151,19 @@ class Product(models.Model):
     def write(self, vals):
         self.check_progress_access()
         res = super(Product, self).write(vals)
-        self.create_product_stock(self.id)
         return res
 
     @api.model
     def create(self, vals):
         self.check_progress_access()
-        vals['code'] = self.get_sequence()
+
+        # sequence creation
+        vals['code'] = self.get_sequence(vals['group_id'], vals['sub_group_id'])
+
         res = super(Product, self).create(vals)
-        self.create_product_stock(res)
         return res
 
     _sql_constraints = [
         ('duplicate_product_name', 'unique (name)', "Duplicate Product Name"),
+        ('duplicate_product_name', 'unique (code)', "Duplicate Product Code"),
     ]

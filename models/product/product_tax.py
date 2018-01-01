@@ -72,5 +72,5 @@ class ProductTax(models.Model):
         return res
 
     _sql_constraints = [
-        ('duplicate_product_tax_value', 'unique (Tax)', "Duplicate Tax"),
+        ('duplicate_product_tax_value', 'unique (name, tax)', "Duplicate Tax"),
     ]

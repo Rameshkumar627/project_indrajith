@@ -26,7 +26,6 @@ class PurchaseIndent(models.Model):
 
     sequence = fields.Char(string='Sequence', readonly=True)
     department_id = fields.Many2one(comodel_name='hospital.department', string='Department')
-    location_id = fields.Many2one(comodel_name='stock.location', string='Location', required=True)
     requested_by = fields.Many2one(comodel_name='res.users', string='Requested By', readonly=True)
     requested_on = fields.Date(string='Requested On', readonly=True)
     approved_by = fields.Many2one(comodel_name='res.users', string='Approved By', readonly=True)
@@ -108,7 +107,7 @@ class PurchaseIndent(models.Model):
             'requested_on': datetime.now().strftime('%Y-%m-%d'),
             'requested_by': self.env.user.id,
             'department_id': self.env.user.department_id.id,
-            'sequence': self.create_sequence(),
+            'sequence': self.create_sequence(self.env.user.department_id),
         }
         self.write(data)
 
@@ -176,7 +175,7 @@ class PIDetail(models.Model):
         stock_obj = self.env['product.stock']
         product_stock = stock_obj.search([('product_id', '=', self.item_id.id),
                                           ('uom_id', '=', self.uom_id.id),
-                                          ('location_id', '=', self.indent_id.location_id.id)])
+                                          ('location_id.name', '=', 'Store')])
 
         if not product_stock:
             raise exceptions.ValidationError('Error! Stock Location for the Product: {0} is not available'.format(self.item_id.name))

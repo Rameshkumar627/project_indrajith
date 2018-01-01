@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_quotation_request_from">
+		<field name="name">quotation.request.form</field>
+		<field name="model">quotation.request</field>
+		<field name="arch" type="xml">
+			<form string="Quotation Request">
+                <header>
+                    <button name="trigger_wha" string="Confirm" type="object" class="oe_highlight"
+                            attrs="{'invisible':[('progress', 'not in',['draft'])]}"/>
+                    <button name="generate_quote" string="Generate" type="object" class="oe_highlight"/>
+                    <field name="progress" widget="statusbar"/>
+                </header>
+				<sheet>
+                    <separator string="Quotation Request" style="text-align:center;"/>
+                    <group col="4" colspan="2">
+                        <field name="sequence"/>
+                        <field name="pi_ref"/>
+                        <field name="vendor_id"/>
+                    </group>
+                    <field name="request_detail">
+                        <tree editable="bottom">
+                            <field name="item_id"/>
+                            <field name="uom_id"/>
+                            <field name="quantity"/>
+                        </tree>
+                    </field>
+                    <field name="comment" placeholder="Comment.."/>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_quotation_request_tree">
+		<field name="name">quotation.request.tree</field>
+		<field name="model">quotation.request</field>
+		<field name="arch" type="xml">
+			<tree string="Quotation Request">
+                <field name="sequence"/>
+                <field name="pi_ref"/>
+                <field name="vendor_id"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_quotation_request">
+        <field name="name">Quotation Request</field>
+        <field name="res_model">quotation.request</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

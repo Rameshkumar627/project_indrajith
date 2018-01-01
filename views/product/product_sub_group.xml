@@ -10,7 +10,7 @@
 				<sheet>
 					<separator string="Product Sub Group" style="text-align:center;"/>
 					<group>
-						<field name="group_id"/>
+						<field name="group_id" options='{"no_open": True, "no_create": True}'/>
 						<field name="name"/>
 						<field name="code"/>
 					</group>
