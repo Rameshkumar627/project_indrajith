@@ -47,7 +47,7 @@ class ProductUOM(models.Model):
     @api.multi
     def unlink(self):
         self.check_progress_access()
-        recs = self.env['product.product'].search([('uom_id', '=', self.id)])
+        recs = self.env['product.product'].search([('uom_ids', '=', self.id)])
         if len(recs):
             raise exceptions.ValidationError('''Product is created based on this UOM so. 
                                                 Please contact administrator for deleting this record''')
@@ -58,7 +58,7 @@ class ProductUOM(models.Model):
     def write(self, vals):
         self.check_progress_access()
         res = {}
-        recs = self.env['product.product'].search([('uom_id', '=', self.id)])
+        recs = self.env['product.product'].search([('uom_ids', '=', self.id)])
         if len(recs):
             raise exceptions.ValidationError('''Product is created based on this UOM so. 
                                                 Please contact administrator for editing this record''')
