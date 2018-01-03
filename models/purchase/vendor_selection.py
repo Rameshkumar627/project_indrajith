@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # On creation create vendor selection detail based on indent (qty > 0)
-# On write create quote request based on vendor_ids, no delete of vendor_ids
+# On generate_quote create quote request based on vendor_ids, no delete of vendor_ids
+#     1. check qr_detail by vendor_select_id, pi_id,
 # On unlink no unlink
 # create, write, unlink needs access rights
 #
@@ -11,7 +12,8 @@ from datetime import datetime
 
 
 PROGRESS_INFO = [('draft', 'Draft'),
-                 ('qa', 'Quotation Approved')]
+                 ('qa', 'Quotation Approved'),
+                 ('cancel', 'Cancel')]
 
 
 class VendorSelection(models.Model):
@@ -25,42 +27,66 @@ class VendorSelection(models.Model):
                                        inverse_name='selection_id', string='Vendor Selection Details')
     comment = fields.Text(string='Comment')
 
+    def create_quotation_request(self):
+        ''' Get all vendors list
+            Check quotation request for each vendor available if not create quotation request'''
+
+        vendors_list = []
+        recs = self.selection_detail
+        for rec in recs:
+            for record in rec.quote_detail:
+                if record.vendor_id.id not in vendors_list:
+                    vendors_list.append(record.vendor_id.id)
+
+        for vendor in vendors_list:
+            qr = self.env['quotation.request'].search([('vendor_id', '=', vendor),
+                                                       ('vs_id', '=', self.id)])
+
+            if not qr:
+                data = {
+                    'pi_ref': self.indent_id.id,
+                    'vendor_id': vendor,
+                    'vs_id': self.id,
+                }
+                self.env['quotation.request'].create(data)
+
+    def create_qr_detail(self):
+        ''' Get all product list
+            Check quotation request detail for each vendor available if not create quotation request detail'''
+
+        vs_recs = self.env['vs.quote.detail'].search([('vs_quote_id.selection_id', '=', self.id)])
+
+        for vs_rec in vs_recs:
+            qr = self.env['quotation.request'].search([('vendor_id', '=', vs_rec.vendor_id.id),
+                                                       ('vs_id', '=', self.id)])
+            if len(qr) == 1:
+                vs_rec.write({'request_id': qr.id})
+            else:
+                raise exceptions.ValidationError('Error!')
+
     # Button Action
     @api.multi
     def generate_quote(self):
         recs = self.selection_detail
-        qr_obj = self.env['quotation.request']
-        qr_detail_obj = self.env['qr.detail']
 
         for rec in recs:
             for vendor in rec.vendor_ids:
 
-                # For each vendor check quotation request (create if not available)
-                quote = qr_obj.search([('pi_ref', '=', self.indent_id.id),
-                                       ('vendor_id', '=', vendor.id),
-                                       ('vs_id', '=', self.id )])
-                if not quote:
-                    qr_data = {
-                        'pi_ref': self.indent_id.id,
-                        'vendor_id': vendor.id,
-                        'vs_id': self.id,
-                    }
-                    qr_rec = qr_obj.create(qr_data)
-                else:
-                    qr_rec = quote
+                # For each vendor check vs_quote_detail (create if not available)
+                vs_quotes = self.env['vs.quote.detail'].search([('vs_quote_id', '=', rec.id),
+                                                                ('vendor_id', '=', vendor.id)])
 
-                # For each vendor check quotation_detail (create if not available)
-                quote_detail = qr_detail_obj.search([('item_id', '=', rec.item_id.id),
-                                                     ('uom_id', '=', rec.uom_id.id),
-                                                     ('request_id', '=', qr_rec.id)])
-                if not quote_detail:
-                    qr_detail_data = {
-                        'item_id': rec.item_id.id,
-                        'uom_id': rec.uom_id.id,
+                if not vs_quotes:
+                    data = {
+                        'vs_quote_id': rec.id,
+                        'vendor_id': vendor.id,
                         'quantity': rec.quantity,
-                        'request_id': qr_rec.id,
                     }
-                    qr_rec.request_detail.create(qr_detail_data)
+                    self.env['vs.quote.detail'].create(data)
+
+        # create quotation request based on vs_quote_detail
+        self.create_quotation_request()
+        self.create_qr_detail()
 
     @api.multi
     def quote_approved(self):
@@ -86,7 +112,6 @@ class VendorSelection(models.Model):
         return status
 
     def create_vs_detail(self, res):
-        obj = self.env['vs.detail']
         pi_recs = self.env['pi.detail'].search([('indent_id', '=', res.indent_id.id),
                                                 ('acc_qty', '>', 0)])
 
@@ -98,8 +123,7 @@ class VendorSelection(models.Model):
                 'selection_id': res.id,
             }
 
-            print data, "------------->>>>>"
-            obj.create(data)
+            self.env['vs.detail'].create(data)
 
     @api.multi
     def unlink(self):
@@ -117,7 +141,6 @@ class VendorSelection(models.Model):
         vals['date'] = datetime.now().strftime('%Y-%m-%d')
         res = super(VendorSelection, self).create(vals)
         self.create_vs_detail(res)
-        print res
         return res
 
 
@@ -142,8 +165,11 @@ class VSQuoteDetail(models.Model):
     quote_ref = fields.Char(string='Quotation', readonly=True)
     vendor_id = fields.Many2one(comodel_name='hospital.partner', string='Vendor', readonly=True)
     quantity = fields.Float(string='Quantity')
+    item_id = fields.Many2one(comodel_name='product.product', string='Product', related='vs_quote_id.item_id')
+    uom_id = fields.Many2one(comodel_name='product.uom', string='UOM', related='vs_quote_id.uom_id')
     tax_id = fields.Many2one(comodel_name='product.tax', string='Tax', readonly=True)
     pf = fields.Float(string='Packing Forwarding', readonly=True)
     others = fields.Float(string='Others', readonly=True)
     total = fields.Float(string='Total', readonly=True)
     vs_quote_id = fields.Many2one(comodel_name='vs.detail', string='Vendor Selection')
+    request_id = fields.Many2one(comodel_name='quotation.request', string='Quotation Request')

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -GPK*-
 
-# Not a duplicate
-# Write and Delete prohibited after Product Creation (due to sequence)
-# create, write, delete Permission restricted to user group
-# Any one can read the Product Group
-# Name includes both name & code
+# Access BY:-
+#   Product Manager : Create, write, delete
+#   Remaining       : Read
+# Name :
+#   [code] - name
+# Control:
+#   Name and code unique
 
 from odoo import models, fields, api, _, exceptions
 
@@ -15,6 +17,12 @@ class ProductGroup(models.Model):
 
     name = fields.Char(string='Group', required=True)
     code = fields.Char(string='Code', required=True)
+
+    def check_product(self):
+        recs = self.env['product.product'].search([('group_id', '=', self.id)])
+        if len(recs):
+            raise exceptions.ValidationError('''Product is created based on this group so. 
+                                                Please contact administrator for deleting this record''')
 
     # Access Function
     def check_progress_access(self):
@@ -44,23 +52,15 @@ class ProductGroup(models.Model):
     @api.multi
     def unlink(self):
         self.check_progress_access()
-        recs = self.env['product.product'].search([('group_id', '=', self.id)])
-        if len(recs):
-            raise exceptions.ValidationError('''Product is created based on this group so. 
-                                                Please contact administrator for deleting this record''')
-        else:
-            res = super(ProductGroup, self).unlink()
+        self.check_product()
+        res = super(ProductGroup, self).unlink()
+        return res
 
     @api.multi
     def write(self, vals):
         self.check_progress_access()
-        res = {}
-        recs = self.env['product.product'].search([('group_id', '=', self.id)])
-        if len(recs):
-            raise exceptions.ValidationError('''Product is created based on this group so. 
-                                                Please contact administrator for editing this record''')
-        else:
-            res = super(ProductGroup, self).write(vals)
+        self.check_product()
+        res = super(ProductGroup, self).write(vals)
         return res
 
     @api.model

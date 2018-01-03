@@ -11,7 +11,6 @@
     'description': 'Hospital Management',
     'depends': ['base', 'mail'],
     'data': [
-        'data/stock_location.xml',
         'menu/main_menu.xml',
         'views/product/product_group.xml',
         'views/product/product_sub_group.xml',
@@ -32,6 +31,7 @@
         'views/purchase/vendor_selection.xml',
         'views/purchase/quotation_request.xml',
         'menu/purchase_menu.xml',
+        'data/store.xml',
     ],
     'demo': [
 

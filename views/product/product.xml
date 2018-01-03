@@ -8,17 +8,17 @@
 		<field name="arch" type="xml">
 			<form string="Product">
 				<header>
-					<button name="create_product_stock" string="Create Stock" type="object"/>
+					<button name="confirm_product" string="Confirm" type="object"/>
 				</header>
 				<sheet>
 					<div class="oe_button_box" name="button_box">
-						<button class="oe_stat_button" name="get_stock_quantity"
+						<button class="oe_stat_button" name="smart_stock_quantity"
 								string="Stock" type="object"
 								icon="fa-shopping-cart"/>
-						<button class="oe_stat_button" name="get_purchase_price"
+						<button class="oe_stat_button" name="smart_purchase_price"
 								string="Purchase" type="object"
 								icon="fa-shopping-basket"/>
-						<button class="oe_stat_button" name="get_sales_price"
+						<button class="oe_stat_button" name="smart_sales_price"
 								string="Sale" type="object"
 								icon="fa-money"/>
 					</div>
@@ -27,7 +27,9 @@
 					<group>
 						<field name="name"/>
 						<field name="group_id" options='{"no_open": True, "no_create": True}'/>
-						<field name="sub_group_id" options='{"no_open": True, "no_create": True}'/>
+						<field name="sub_group_id"
+							   domain="[('group_id', '=', group_id)]"
+							   options='{"no_open": True, "no_create": True}'/>
 						<field name="uom_ids" widget="many2many_tags" options='{"no_open": True, "no_create": True}'/>
 						<field name="location_ids" widget="many2many_tags" options='{"no_open": True, "no_create": True}'/>
 					</group>

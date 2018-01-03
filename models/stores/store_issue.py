@@ -1,10 +1,27 @@
 # -*- coding: utf-8 -*-
 
-# stock move from store to location described in store request
-# No unlink after sequence
-# create, write, unlink needs access
-# check stock before reduction(reduction in store, addition in location)
-# On creation update requested by, requested on, department, location, product and already issued quantity
+
+# Access BY:-
+#   Progress :
+#       draft        : Hospital User
+#       issued       : No Access
+#
+# Name :
+#   sequence
+#
+# Control:
+#   sequence unique
+#   creation:
+#       check any pending on same store request
+#       update: store request detail, accepted qty
+#   button issued:
+#       check stock availability
+#       update: issued_by, issued_on
+#       stock reduction in stores, stock updation in location_id
+#
+# Workflow:
+#   Draft ---------->issued
+
 
 from odoo import fields, models, api, _, exceptions
 from datetime import datetime
@@ -15,6 +32,7 @@ PROGRESS_INFO = [('draft', 'Draft'), ('issued', 'Issued')]
 class StoreIssue(models.Model):
     _name = 'store.issue'
     _description = 'Store Issue'
+    _rec_name = 'sequence'
 
     sequence = fields.Char(string='Sequence', readonly=True)
     request_id = fields.Many2one(comodel_name='store.request', string='Store Request', reaquired=True)
@@ -70,25 +88,10 @@ class StoreIssue(models.Model):
 
     def create_sequence(self):
         obj = self.env['ir.sequence'].sudo()
-        self.department_sequence_creation()
 
         sequence = obj.next_by_code('store.issue')
         period = self.env['period.period'].search([('progress', '=', 'open')])
         return '{0}/{1}'.format(sequence, period.name)
-
-    def department_sequence_creation(self):
-        obj = self.env['ir.sequence'].sudo()
-        if not obj.search([('code', '=', 'store.issue')]):
-            seq = {
-                'name': 'Store Isssue',
-                'implementation': 'standard',
-                'code': 'store.issue',
-                'prefix': 'SI/',
-                'padding': 4,
-                'number_increment': 1,
-                'use_date_range': False,
-            }
-            obj.create(seq)
 
     def default_vals_update(self, vals):
         sr = self.env['store.request'].search([('id', '=', vals['request_id'])])

@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 
-# Not a duplicate name
-# Not a duplicate code
-# Write and Delete prohibited after Product Creation (due to sequence)
-# create, write, delete Permission restricted to user group
-# Special Button for sale/ Purchase/ Stock
-# All User have read permission on Product
-# Stock for each location and UOM is created on button click(create_product_stock)
+# Access BY:-
+#   Product Manager : Create, write, delete
+#   Remaining       : Read
+# Name :
+#   [code] - name
+# Control:
+#   Name and code unique
+#   No delete
+#   Stock creation based on uom_ids and location_ids on trigger confirm
+#   Special Buttons to show sale price, purchase price, stock
 
 # Note Stock location: Store is hard coded
+
 
 from odoo import models, fields, api, _, exceptions
 
@@ -25,14 +29,10 @@ class Product(models.Model):
     location_ids = fields.Many2many(comodel_name='stock.location', string='Stock Location', required=True)
     active = fields.Boolean(string='Active', default=True)
 
-    def get_sequence(self, group_id, sub_group_id):
+    def get_sequence(self, group, sub_group):
         obj = self.env['ir.sequence'].sudo()
 
-        group = self.env['product.group'].search([('id', '=', group_id)])
-        sub_group = self.env['product.sub.group'].search([('id', '=', sub_group_id)])
-
         self.sequence_creation(group, sub_group)
-
         sequence = obj.next_by_code('product.{0}.{1}'.format(group.code, sub_group.code))
         return '{0}'.format(sequence)
 
@@ -51,7 +51,20 @@ class Product(models.Model):
             obj.create(seq)
 
     @api.multi
+    def confirm_product(self):
+        self.check_group()
+        self.create_product_stock()
+        if not self.code:
+            data = {'code': self.get_sequence(self.group_id, self.sub_group_id)}
+            self.write(data)
+
+    def check_group(self):
+        if self.sub_group_id.group_id.id != self.group_id.id:
+            raise exceptions.ValidationError('Error! Group and sub Group not matching')
+
+    @api.multi
     def create_product_stock(self):
+
         stock_obj = self.env['product.stock']
         recs = self.uom_ids
 
@@ -60,7 +73,7 @@ class Product(models.Model):
             stock_obj.create({
                 'product_id': self.id,
                 'uom_id': rec.id,
-                'location_id': 3,
+                'location_id': 1,
                 'quantity': 0
             })
 
@@ -78,7 +91,7 @@ class Product(models.Model):
                     stock_obj.create(data)
 
     # Special Button
-    def get_sales_price(self):
+    def smart_sales_price(self):
         view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_product_sales_tree')[1]
         return {
             'type': 'ir.actions.act_window',
@@ -91,7 +104,7 @@ class Product(models.Model):
             'target': 'current',
         }
 
-    def get_purchase_price(self):
+    def smart_purchase_price(self):
         view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_product_purchase_tree')[1]
         return {
             'type': 'ir.actions.act_window',
@@ -104,7 +117,7 @@ class Product(models.Model):
             'target': 'current',
         }
 
-    def get_stock_quantity(self):
+    def smart_stock_quantity(self):
         view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_product_stock_tree')[1]
         return {
             'type': 'ir.actions.act_window',
@@ -156,10 +169,6 @@ class Product(models.Model):
     @api.model
     def create(self, vals):
         self.check_progress_access()
-
-        # sequence creation
-        vals['code'] = self.get_sequence(vals['group_id'], vals['sub_group_id'])
-
         res = super(Product, self).create(vals)
         return res
 

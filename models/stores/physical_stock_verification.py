@@ -9,6 +9,7 @@
 # Except fist time remaining all other time till_date is next record start date
 
 from odoo import models, fields, api, _, exceptions
+from datetime import datetime
 
 
 class PhysicalStockVerification(models.Model):
@@ -19,6 +20,16 @@ class PhysicalStockVerification(models.Model):
     till_date = fields.Date(string='Till Date', required=True)
     sequence = fields.Char(string='Sequence', readonly=True)
     psv_detail = fields.One2many(comodel_name='psv.detail', string='PSV Detail')
+
+    def check_date(self):
+        ''' No Backdated
+            No Datetime Overlap '''
+        from_date = datetime.strptime(self.from_date, '%Y-%m-%d')
+        till_date = datetime.strptime(self.till_date, '%Y-%m-%d')
+        if from_date > till_date:
+            raise exceptions.ValidationError('Error! Please check date')
+
+        recs = self.env['physical.stock.verification'].search([()])
 
 
 class PSVDetail(models.Model):

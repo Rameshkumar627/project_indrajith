@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
-# Can be a duplicate of name
-# Not a duplicate of code
-# create, write, delete Permission restricted to user group
-# Any one can read the Product Sub-Group
-# Name includes both name & code
+# Access BY:-
+#   Product Manager : Create, write, delete
+#   Remaining       : Read
+# Name :
+#   [code] - name
+# Control:
+#   Name can be duplicate
+#   code unique
+
 
 from odoo import models, fields, api, _, exceptions
 
@@ -16,6 +20,12 @@ class ProductSubGroup(models.Model):
     group_id = fields.Many2one(comodel_name='product.group', string='Group', required=True)
     name = fields.Char(string='Sub Group', required=True)
     code = fields.Char(string='Sub Group Code', required=True)
+
+    def check_product(self):
+        recs = self.env['product.product'].search([('sub_group_id', '=', self.id)])
+        if len(recs):
+            raise exceptions.ValidationError('''Product is created based on this group so. 
+                                                Please contact administrator for deleting this record''')
 
     # Access Function
     def check_progress_access(self):
@@ -44,23 +54,15 @@ class ProductSubGroup(models.Model):
     @api.multi
     def unlink(self):
         self.check_progress_access()
-        recs = self.env['product.product'].search([('sub_group_id', '=', self.id)])
-        if len(recs):
-            raise exceptions.ValidationError('''Product is created based on this group so. 
-                                                Please contact administrator for deleting this record''')
-        else:
-            res = super(ProductSubGroup, self).unlink()
+        self.check_product()
+        res = super(ProductSubGroup, self).unlink()
+        return res
 
     @api.multi
     def write(self, vals):
         self.check_progress_access()
-        res = {}
-        recs = self.env['product.product'].search([('sub_group_id', '=', self.id)])
-        if len(recs):
-            raise exceptions.ValidationError('''Product is created based on this group so. 
-                                                Please contact administrator for editing this record''')
-        else:
-            res = super(ProductSubGroup, self).write(vals)
+        self.check_product()
+        res = super(ProductSubGroup, self).write(vals)
         return res
 
     @api.model

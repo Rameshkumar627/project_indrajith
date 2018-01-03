@@ -1,14 +1,39 @@
 # -*- coding: utf-8 -*-
 
-# No Duplicate in sequence
-# On create include requested by, requested on, department and check access
-# On write only check access
-# On delete check access, no delete when sequence created
-# On confirmation sequence created and applied for HOD
-# Hod can approve/ cancel
-# User can close after HOD approval
-# Before cancellation check for any store issue
-# Smart Button to show all issue based on this request
+# Access BY:-
+#   Progress :
+#       draft        : Hospital User
+#       wha          : Hospital HOD
+#       hod_approved : Hospital User, Hospital HOD
+#       cancel       : No Access
+#       closed       : No Access
+#
+# Name :
+#   sequence
+#
+# Control:
+#   sequence unique
+#   sequence based on department
+#   creation:
+#       update: requested_by, requested_on, department_id, need location_id, product detail, required qty
+#   button wha:
+#       check product_stock (if available)
+#       update requested_by, requested_on, department_id, sequence
+#   button hod_approved:
+#       required product accepted qty
+#       update approved_by, approved_on
+#   button cancel:
+#       check any store issue
+#       update approved_by, approved_on
+#   button closed:
+#       automated close by Hospital store---fully issued
+#       force close by Hospital user--------no/ partially issued
+#
+# Workflow:
+#   Draft ---------->wha
+#   wha------------->hod_approve/ cancel
+#   hod_approved---->closed
+
 
 from odoo import fields, models, api, _, exceptions
 from datetime import datetime
@@ -23,9 +48,10 @@ PROGRESS_INFO = [('draft', 'Draft'),
 class StoreRequest(models.Model):
     _name = 'store.request'
     _description = 'Store Request'
+    _rec_name = 'sequence'
 
     sequence = fields.Char(string='Sequence', readonly=True)
-    department_id = fields.Many2one(comodel_name='hospital.department', string='Department')
+    department_id = fields.Many2one(comodel_name='hospital.department', string='Department', readonly=True)
     location_id = fields.Many2one(comodel_name='stock.location', string='Location', required=True)
     requested_by = fields.Many2one(comodel_name='res.users', string='Requested By', readonly=True)
     requested_on = fields.Date(string='Requested On', readonly=True)
@@ -62,7 +88,7 @@ class StoreRequest(models.Model):
         elif self.progress == 'wha':
             group_list = ['Hospital HOD', 'Admin']
         elif self.progress == 'hod_approved':
-            group_list = ['Hospital User', 'Admin']
+            group_list = ['Hospital User', 'Hospital HOD', 'Hospital Store', 'Admin']
 
         if not self.check_group_access(group_list):
             raise exceptions.ValidationError('Error! You are not authorised to change this record')
@@ -151,10 +177,9 @@ class StoreRequest(models.Model):
     @api.multi
     def unlink(self):
         self.check_progress_access()
-        if not self.progress:
-            res = super(StoreRequest, self).unlink()
-        else:
+        if self.progress:
             raise exceptions.ValidationError('Error! You are not authorised to change this record')
+        res = super(StoreRequest, self).unlink()
         return res
 
     @api.multi
