@@ -34,8 +34,8 @@
                             <field name="uom_id"
                                    domain="[('product_ids', '=', item_id)]"
                                    attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
-                            <field name="req_qty" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
-                            <field name="acc_qty" attrs="{'readonly':[('progress', 'not in',['wha'])]}"/>
+                            <field name="requested_quantity" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
+                            <field name="accepted_quantity" attrs="{'readonly':[('progress', 'not in',['wha'])]}"/>
                             <field name="indent_id" invisible="1"/>
                             <field name="progress" invisible="1"/>
                         </tree>

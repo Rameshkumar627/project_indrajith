@@ -30,6 +30,8 @@
         'views/purchase/indent.xml',
         'views/purchase/vendor_selection.xml',
         'views/purchase/quotation_request.xml',
+        'views/purchase/vs_quote_detail.xml',
+        'views/purchase/purchase_order.xml',
         'menu/purchase_menu.xml',
         'data/store.xml',
     ],

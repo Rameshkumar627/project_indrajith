@@ -7,24 +7,27 @@
 		<field name="model">quotation.request</field>
 		<field name="arch" type="xml">
 			<form string="Quotation Request">
-                <header>
-                    <button name="trigger_wha" string="Confirm" type="object" class="oe_highlight"
-                            attrs="{'invisible':[('progress', 'not in',['draft'])]}"/>
-                    <button name="generate_quote" string="Generate" type="object" class="oe_highlight"/>
-                    <field name="progress" widget="statusbar"/>
-                </header>
-				<sheet>
+                <sheet>
                     <separator string="Quotation Request" style="text-align:center;"/>
+                    <h1><field name="sequence"/></h1>
                     <group col="4" colspan="2">
-                        <field name="sequence"/>
-                        <field name="pi_ref"/>
+                        <field name="pi_id"/>
                         <field name="vendor_id"/>
+                        <field name="vs_id"/>
+                        <field name="vendor_ref"/>
+                        <field name="processed_by"/>
+                        <field name="processed_on"/>
                     </group>
                     <field name="request_detail">
                         <tree editable="bottom">
                             <field name="item_id"/>
                             <field name="uom_id"/>
-                            <field name="quantity"/>
+                            <field name="requested_quantity"/>
+                            <field name="accepted_quantity"/>
+                            <field name="tax_id"/>
+                            <field name="pf"/>
+                            <field name="others"/>
+                            <field name="total"/>
                         </tree>
                     </field>
                     <field name="comment" placeholder="Comment.."/>
@@ -40,7 +43,7 @@
 		<field name="arch" type="xml">
 			<tree string="Quotation Request">
                 <field name="sequence"/>
-                <field name="pi_ref"/>
+                <field name="pi_id"/>
                 <field name="vendor_id"/>
 			</tree>
 		</field>

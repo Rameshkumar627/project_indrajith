@@ -1,14 +1,29 @@
 # -*- coding: utf-8 -*-
 
-# No Duplicate in sequence
-# On create include requested by, requested on, department and check access
-# On write only check access
-# On delete check access, no delete when sequence created
-# On confirmation sequence created and applied for HOD
-# Hod can approve/ cancel
-# User can close after HOD approval
-# Before cancellation check for any store issue
-# Smart Button to show all purchase based on this request
+# Workflow:
+#   create----------->Draft (Hospital User)
+#       update : requested_by, requested_on, department_id, sequence
+#
+#   Draft------------>wha (Hospital User)
+#       update : requested_by, requested_on, department_id, sequence
+#       need   : product detail and its quantity
+#       check product in stock
+#
+#   wha------------->cancel (Hospital HOD)
+#       update : approved_by, approved_on
+#
+#   wha------------->hod_approved (Hospital HOD)
+#       update : approved_by, approved_on
+#       need   : accepted quantity
+#
+#   hod_approved---->closed (Hospital User/ Hospital HOD)
+
+
+#  Sequence based on department
+#  No Product duplication
+# Smart Button:
+#     Show vendor selection, quotation, purchase order, material receipt based on user permission
+
 
 from odoo import fields, models, api, _, exceptions
 from datetime import datetime
@@ -47,12 +62,6 @@ class PurchaseIndent(models.Model):
 
         for rec in recs:
             rec.check_product_stock_location()
-
-    def check_store_issue(self):
-        recs = self.env['store.issue'].search([('request_id', '=', self.id)])
-        if recs:
-            raise exceptions.ValidationError('''Error! You can close this record, 
-                                                since the store already issue for this request''')
 
     def check_progress_access(self):
         group_list = []
@@ -124,7 +133,6 @@ class PurchaseIndent(models.Model):
     @api.multi
     def trigger_cancel(self):
         self.check_progress_access()
-        self.check_store_issue()
         self.write({'progress': 'cancel'})
 
     @api.multi
@@ -162,8 +170,8 @@ class PIDetail(models.Model):
 
     item_id = fields.Many2one(comodel_name='product.product', string='Item', required=True)
     uom_id = fields.Many2one(comodel_name='product.uom', string='UOM', required=True)
-    req_qty = fields.Float(string='Requested Quantity', required=True)
-    acc_qty = fields.Float(string='Accepted Quantity')
+    requested_quantity = fields.Float(string='Requested Quantity', required=True)
+    accepted_quantity = fields.Float(string='Accepted Quantity')
     indent_id = fields.Many2one(comodel_name='purchase.indent', string='Purchase Indent')
     progress = fields.Char(string='Progress', compute='get_progress', store=False)
 

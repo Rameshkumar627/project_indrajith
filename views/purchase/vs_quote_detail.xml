@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_vs_quote_detail_from">
+		<field name="name">vs.quote.detail.form</field>
+		<field name="model">vs.quote.detail</field>
+		<field name="arch" type="xml">
+			<form string="Quotation Approval">
+				<sheet>
+                    <separator string="Quotation Approval" style="text-align:center;"/>
+                    <group col="4" colspan="2">
+                        <field name="vendor_id"/>
+                        <field name="item_id"/>
+                        <field name="uom_id"/>
+                        <field name="requested_quantity"/>
+                        <field name="accepted_quantity"/>
+                        <field name="tax_id"/>
+                        <field name="pf"/>
+                        <field name="others"/>
+                        <field name="total"/>
+                    </group>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+    <!--Tree View-->
+	<record model="ir.ui.view" id="view_vs_quote_detail_tree">
+		<field name="name">vs.quote.detail.tree</field>
+		<field name="model">vs.quote.detail</field>
+		<field name="arch" type="xml">
+			<tree string="Quotation Approval">
+                <field name="vendor_id"/>
+                <field name="item_id"/>
+                <field name="uom_id"/>
+                <field name="requested_quantity"/>
+                <field name="accepted_quantity"/>
+                <field name="tax_id"/>
+                <field name="pf"/>
+                <field name="others"/>
+                <field name="total"/>
+			</tree>
+		</field>
+	</record>
+
+</odoo>

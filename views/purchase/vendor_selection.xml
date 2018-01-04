@@ -10,7 +10,7 @@
                 <header>
                     <button name="trigger_wha" string="Confirm" type="object" class="oe_highlight"
                             attrs="{'invisible':[('progress', 'not in',['draft'])]}"/>
-                    <button name="generate_quote" string="Generate" type="object" class="oe_highlight"/>
+                    <button name="trigger_generate_vs_quote_detail" string="Generate" type="object" class="oe_highlight"/>
                     <field name="progress" widget="statusbar"/>
                 </header>
 				<sheet>
@@ -23,10 +23,20 @@
                         <tree editable="bottom">
                             <field name="item_id"/>
                             <field name="uom_id"/>
-                            <field name="quantity"/>
+                            <field name="requested_quantity"/>
                             <field name="vendor_ids" widget="many2many_tags"/>
                             <field name="comment"/>
                         </tree>
+                        <form>
+                            <group>
+                                <field name="item_id"/>
+                                <field name="uom_id"/>
+                                <field name="requested_quantity"/>
+                                <field name="vendor_ids" widget="many2many_tags"/>
+                            </group>
+                            <field name="quote_detail"/>
+                            <field name="comment" placeholder="Comment.."/>
+                        </form>
                     </field>
                     <field name="comment" placeholder="Comment.."/>
 				</sheet>
