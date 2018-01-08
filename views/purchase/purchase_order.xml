@@ -23,7 +23,6 @@
                             <field name="quantity"/>
                             <field name="tax_id"/>
                             <field name="pf"/>
-                            <field name="others"/>
                             <field name="total"/>
                         </tree>
                     </field>
