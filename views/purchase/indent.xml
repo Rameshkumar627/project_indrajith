@@ -20,7 +20,7 @@
                 </header>
 				<sheet>
                     <separator string="Purchase Indent" style="text-align:center;"/>
-                    <field name="sequence" readonly="1"/>
+                    <h1><field name="sequence" readonly="1"/></h1>
                     <group col="4" colspan="2">
                         <field name="requested_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
                         <field name="requested_on" readonly="1"/>
@@ -51,7 +51,7 @@
 		<field name="name">purchase.indent.tree</field>
 		<field name="model">purchase.indent</field>
 		<field name="arch" type="xml">
-			<tree string="Store Request">
+			<tree string="Purchase Indent">
                 <field name="sequence"/>
                 <field name="department_id"/>
 				<field name="requested_by"/>
@@ -65,7 +65,7 @@
 
 	<!--Action-->
 	<record model="ir.actions.act_window" id="action_purchase_indent">
-        <field name="name">Store Request</field>
+        <field name="name">Purchase Indent</field>
         <field name="res_model">purchase.indent</field>
         <field name="view_type">form</field>
         <field name="limit">50</field>

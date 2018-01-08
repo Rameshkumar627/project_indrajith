@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_material_receipt_from">
+		<field name="name">material.receipt.form</field>
+		<field name="model">material.receipt</field>
+		<field name="arch" type="xml">
+			<form string="Material Receipt">
+                <sheet>
+                    <separator string="Material Receipt" style="text-align:center;"/>
+                    <h1><field name="sequence"/></h1>
+                    <group col="4" colspan="2">
+                        <field name="indent_id"/>
+                        <field name="po_id"/>
+                        <field name="date"/>
+                        <field name="received_by"/>
+                    </group>
+                    <field name="mr_detail">
+                        <tree editable="bottom">
+                            <field name="item_id"/>
+                            <field name="uom_id"/>
+                            <field name="tax_id"/>
+                            <field name="pf"/>
+                            <field name="total"/>
+                        </tree>
+                    </field>
+                    <field name="comment" placeholder="Comment.."/>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_material_receipt_tree">
+		<field name="name">material.receipt.tree</field>
+		<field name="model">material.receipt</field>
+		<field name="arch" type="xml">
+			<tree string="Material Receipt">
+                <field name="sequence"/>
+                <field name="indent_id"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_material_receipt">
+        <field name="name">Material Receipt</field>
+        <field name="res_model">material.receipt</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

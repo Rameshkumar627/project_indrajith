@@ -9,7 +9,7 @@
             <field name="code">100</field>
         </record>
 
-        <record id="store_stote_issue" model="ir.sequence">
+        <record id="store_store_issue" model="ir.sequence">
             <field name="name">Store Isssue</field>
             <field name="implementation">standard</field>
             <field name="code">store.issue</field>

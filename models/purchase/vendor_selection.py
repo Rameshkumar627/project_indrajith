@@ -24,6 +24,7 @@
 
 from odoo import models, fields, api, _, exceptions
 from datetime import datetime
+from purchase_calculation import PurchaseCalculation as PC
 
 
 PROGRESS_INFO = [('draft', 'Draft'),
@@ -66,7 +67,8 @@ class VendorSelection(models.Model):
                     }
                     po = self.env['purchase.order'].create(data)
                 po_detail = self.env['po.detail'].search([('item_id', '=', record.item_id.id),
-                                                          ('uom_id', '=', record.uom_id.id)])
+                                                          ('uom_id', '=', record.uom_id.id),
+                                                          ('po_id.qr_id', '=', record.request_id.id)])
 
                 if not po_detail:
                     data = {
@@ -75,8 +77,8 @@ class VendorSelection(models.Model):
                         'quantity': record.accepted_quantity,
                         'tax_id': record.tax_id.id,
                         'pf': record.pf,
-                        'others': record.others,
                         'total': record.total,
+                        'po_id': po.id,
 
                     }
                     self.env['po.detail'].create(data)
@@ -89,7 +91,7 @@ class VendorSelection(models.Model):
             for rec in record.quote_detail:
                 qty = qty + rec.accepted_quantity
             if not qty:
-                if not rec.comment:
+                if not record.comment:
                     raise exceptions.ValidationError('Error! Required comments if no quantity is given')
 
     def create_quotation_request(self):
@@ -111,15 +113,30 @@ class VendorSelection(models.Model):
 
             if not qr:
                 data = {
-                    'pi_ref': self.indent_id.id,
+                    'pi_id': self.indent_id.id,
                     'vendor_id': vendor,
                     'vs_id': self.id,
-                    'progress': 'draft',
                 }
                 qr = self.env['quotation.request'].create(data)
 
             for vs_re in vs_rec:
                 vs_re.write({'request_id': qr.id})
+
+    def update_po_cancel(self):
+        records = self.selection_detail
+
+        id_lists = []
+        for record in records:
+            for rec in record.quote_detail:
+                if rec not in id_lists:
+                    id_lists.append(rec.request_id.id)
+
+        for id_list in id_lists:
+            po = self.env['purchase.order'].search([('qr_id', '=', id_list)])
+            if po:
+                if po.state != 'cancel':
+                    raise exceptions.ValidationError('''Error! Purchase order in progress. 
+                    please cancel and continus cancel Vendir selection''')
 
     # Button Action
     @api.multi
@@ -154,10 +171,17 @@ class VendorSelection(models.Model):
         for rec in recs:
             rec.write(data)
 
+    @api.multi
+    def trigger_cancel(self):
+        self.check_progress_access()
+        self.update_po_cancel()
+        data = {'progress': 'cancel'}
+        self.write(data)
+
     def check_progress_access(self):
         group_list = []
         if self.progress in ['draft', False]:
-            group_list = ['procurement User', 'Admin']
+            group_list = ['procurement User', 'Hospital management', 'Admin']
         elif self.progress == 'qa':
             group_list = ['procurement User', 'Hospital Management', 'Admin']
 
@@ -181,7 +205,7 @@ class VendorSelection(models.Model):
             data = {
                 'item_id': rec.item_id.id,
                 'uom_id': rec.uom_id.id,
-                'quantity': rec.accepted_quantity,
+                'requested_quantity': rec.accepted_quantity,
                 'selection_id': res.id,
             }
 
@@ -265,21 +289,24 @@ class VSQuoteDetail(models.Model):
     _description = 'Vendor Selection Quote Detail'
 
     vendor_id = fields.Many2one(comodel_name='hospital.partner', string='Vendor', readonly=True)
-    requested_quantity = fields.Float(string='Requested Quantity', default=0)
-    accepted_quantity = fields.Float(string='Accepted Quantity', default=0)
     item_id = fields.Many2one(comodel_name='product.product', string='Product', related='vs_quote_id.item_id')
     uom_id = fields.Many2one(comodel_name='product.uom', string='UOM', related='vs_quote_id.uom_id')
-    tax_id = fields.Many2one(comodel_name='product.tax', string='Tax', required=True)
+    requested_quantity = fields.Float(string='Requested Quantity', default=0)
+    accepted_quantity = fields.Float(string='Accepted Quantity', default=0)
+    unit_price = fields.Float(string='Unit Price', default=0)
     discount = fields.Float(string='Discount', default=0, readonly=True)
-    pf = fields.Float(string='Packing Forwarding', default=0)
-    others = fields.Float(string='Others', default=0)
-    total = fields.Float(string='Total', default=0, readonly=True)
-
+    discount_amount = fields.Float(string='Discount Amount', default=0, readonly=True)
+    amt_after_discount = fields.Float(string='Discount Amount', default=0, readonly=True)
+    tax_id = fields.Many2one(comodel_name='product.tax', string='Tax', required=True)
+    pf = fields.Float(string='Packing Forwarding', deafult=0)
+    pf_amount = fields.Float(string='Packing Forwarding Amount', default=0, readonly=True)    
     igst = fields.Float(string='IGST', default=0, readonly=True)
     cgst = fields.Float(string='CGST', default=0, readonly=True)
     sgst = fields.Float(string='SGST', default=0, readonly=True)
     tax_amount = fields.Float(string='Tax Amount', default=0, readonly=True)
-
+    taxed_amount = fields.Float(string='Taxed Amount', default=0, readonly=True)
+    un_taxed_amount = fields.Float(string='Tax Amount', default=0, readonly=True)
+    total = fields.Float(string='Total', default=0, readonly=True)
     vs_quote_id = fields.Many2one(comodel_name='vs.detail', string='Vendor Selection')
     request_id = fields.Many2one(comodel_name='quotation.request', string='Quotation Request')
     progress = fields.Char(string='Progress', compute='get_progress', store=False)
@@ -287,6 +314,35 @@ class VSQuoteDetail(models.Model):
     def get_progress(self):
         for rec in self:
             rec.progress = rec.vs_quote_id.selection_id.progress
+
+    def trigger_update(self):
+        print "i call"
+        price = self.accepted_quantity * self.unit_price
+
+        pc_obj = PC()
+        discount_amount = pc_obj.calculate_percentage(price, self.discount)
+
+        amt_after_discount = price - discount_amount
+        igst, cgst, sgst = pc_obj.calculate_tax(amt_after_discount, self.tax_id.tax, self.tax_id.name)
+       
+        tax_amount = igst + cgst + sgst
+        pf_amount = pc_obj.calculate_percentage(amt_after_discount, self.pf)
+
+        total = amt_after_discount + tax_amount + pf_amount
+
+        data = {'discount_amount': discount_amount,
+                'amt_after_discount': amt_after_discount,
+                'pf_amount': pf_amount,
+                'igst': igst,
+                'cgst': cgst,
+                'sgst': sgst,
+                'tax_amount': tax_amount,
+                'taxed_amount': 0,
+                'un_taxed_amount': 0,
+                'total': total                
+                }
+
+        self.write(data)
 
     def check_progress_access(self):
         group_list = []

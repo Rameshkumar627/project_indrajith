@@ -13,12 +13,13 @@
                         <field name="vendor_id"/>
                         <field name="item_id"/>
                         <field name="uom_id"/>
+                        <field name="unit_price"/>
                         <field name="requested_quantity"/>
                         <field name="accepted_quantity"/>
                         <field name="tax_id"/>
                         <field name="pf"/>
-                        <field name="others"/>
                         <field name="total"/>
+                        <field name="request_id"/>
                     </group>
 				</sheet>
 			</form>
@@ -34,12 +35,13 @@
                 <field name="vendor_id"/>
                 <field name="item_id"/>
                 <field name="uom_id"/>
+                <field name="unit_price"/>
                 <field name="requested_quantity"/>
                 <field name="accepted_quantity"/>
                 <field name="tax_id"/>
                 <field name="pf"/>
-                <field name="others"/>
                 <field name="total"/>
+                <field name="request_id"/>
 			</tree>
 		</field>
 	</record>

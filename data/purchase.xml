@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="purchase_quotation_request" model="ir.sequence">
+            <field name="name">Quotation Request</field>
+            <field name="implementation">standard</field>
+            <field name="code">quotation.request</field>
+            <field name="prefix">QRG/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="use_date_range">False</field>
+        </record>
+
+        <record id="purchase_purchase_order" model="ir.sequence">
+            <field name="name">Purchase Order</field>
+            <field name="implementation">standard</field>
+            <field name="code">purchase.order</field>
+            <field name="prefix">PO/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="use_date_range">False</field>
+        </record>
+
+        <record id="purchase_material_receipt" model="ir.sequence">
+            <field name="name">Materail Receipt</field>
+            <field name="implementation">standard</field>
+            <field name="code">material.receipt</field>
+            <field name="prefix">MR/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="use_date_range">False</field>
+        </record>
+
+    </data>
+</odoo>

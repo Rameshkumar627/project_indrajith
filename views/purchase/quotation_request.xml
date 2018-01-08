@@ -7,29 +7,49 @@
 		<field name="model">quotation.request</field>
 		<field name="arch" type="xml">
 			<form string="Quotation Request">
+                <header>
+                    <button name="trigger_update" string="Update" type="object" class="oe_highlight"/>
+                    <field name="progress" widget="statusbar"/>
+                </header>
                 <sheet>
                     <separator string="Quotation Request" style="text-align:center;"/>
                     <h1><field name="sequence"/></h1>
                     <group col="4" colspan="2">
                         <field name="pi_id"/>
                         <field name="vendor_id"/>
-                        <field name="vs_id"/>
                         <field name="vendor_ref"/>
                         <field name="processed_by"/>
                         <field name="processed_on"/>
                     </group>
                     <field name="request_detail">
-                        <tree editable="bottom">
-                            <field name="item_id"/>
-                            <field name="uom_id"/>
-                            <field name="requested_quantity"/>
-                            <field name="accepted_quantity"/>
-                            <field name="tax_id"/>
-                            <field name="pf"/>
-                            <field name="others"/>
-                            <field name="total"/>
-                        </tree>
+                        <!--<tree editable="bottom">-->
+                            <!--<field name="item_id"/>-->
+                            <!--<field name="uom_id"/>-->
+                            <!--<field name="requested_quantity"/>-->
+                            <!--<field name="accepted_quantity"/>-->
+                            <!--<field name="discount"/>-->
+                            <!--<field name="tax_id"/>-->
+                            <!--<field name="pf"/>-->
+                            <!--<field name="total"/>-->
+                            <!--<field name="request_id"/>-->
+                        <!--</tree>-->
                     </field>
+                    <group>
+                        <field name="grand_total"/>
+                        <field name="overall_discount"/>
+                        <field name="discount_amount"/>
+                        <field name="overall_pf"/>
+                        <field name="pf_amount"/>
+                        <field name="igst"/>
+                        <field name="cgst"/>
+                        <field name="sgst"/>
+                        <field name="tax_amount"/>
+                        <field name="taxed_amount"/>
+                        <field name="un_taxed_amount"/>
+                        <field name="gross_amount"/>
+                        <field name="round_off"/>
+                        <field name="net_amount"/>
+                    </group>
                     <field name="comment" placeholder="Comment.."/>
 				</sheet>
 			</form>

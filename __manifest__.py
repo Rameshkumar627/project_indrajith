@@ -32,8 +32,10 @@
         'views/purchase/quotation_request.xml',
         'views/purchase/vs_quote_detail.xml',
         'views/purchase/purchase_order.xml',
+        'views/purchase/material_receipt.xml',
         'menu/purchase_menu.xml',
         'data/store.xml',
+        'data/purchase.xml',
     ],
     'demo': [
 

@@ -26,9 +26,9 @@ class MaterialReceipt(models.Model):
         self.check_progress_access()
         self.write({'progress': 'cancel'})
 
-    def trigger_cancel(self):
+    def trigger_inspected(self):
         self.check_progress_access()
-        self.write({'progress': 'po_raised'})
+        self.write({'progress': 'inspected'})
 
     def check_progress_access(self):
         group_list = []
@@ -82,16 +82,26 @@ class MRDetail(models.Model):
 
     item_id = fields.Many2one(comodel_name='product.product', string='Item', readonly=True)
     uom_id = fields.Many2one(comodel_name='product.uom', string='UOM', readonly=True)
-    quantity = fields.Float(string='Quantity', readonly=True)
-    tax_id = fields.Many2one(comodel_name='product.tax', string='Tax', readonly=True)
-    pf = fields.Float(string='Packing Forwarding', readonly=True)
-    others = fields.Float(string='Others', readonly=True)
-    total = fields.Float(string='Total', readonly=True)
     mr_id = fields.Many2one(comodel_name='material.receipt', string='Material Receipt')
 
     requested_quantity = fields.Float(string='Requested Quantity')
     received_quantity = fields.Float(string='Received Quantity')
     accepted_quantity = fields.Float(string='Accepted Quantity')
     balance_quantity = fields.Float(string='Balance Quantity')
+
+    unit_price = fields.Float(string='Unit Price', readonly=True)
+    discount = fields.Float(string='Discount')
+    discount_amount = fields.Float(string='Discount Amount', readonly=True)
+    amt_after_discount = fields.Float(string='Amount After Discount', readonly=True)
+    tax_id = fields.Many2one(comodel_name='product.tax', string='Tax', readonly=True)
+    pf = fields.Float(string='Packing Forwarding', readonly=True)
+    pf_amount = fields.Float(string='Packing Forwading Amount', readonly=True)
+    cgst = fields.Float(string='CGST', readonly=True)
+    sgst = fields.Float(string='SGST', readonly=True)
+    igst = fields.Float(string='IGST', readonly=True)
+    tax_amount = fields.Float(string='Tax Amount', readonly=True)
+    taxed_amount = fields.Float(string='Taxed Amount', readonly=True)
+    un_taxed_amount = fields.Float(string='Untaxed Amount', readonly=True)
+    total = fields.Float(string='Total', readonly=True)
 
 

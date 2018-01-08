@@ -38,6 +38,7 @@ PROGRESS_INFO = [('draft', 'Draft'),
 class PurchaseIndent(models.Model):
     _name = 'purchase.indent'
     _description = 'Purchase Indent'
+    _rec_name = 'sequence'
 
     sequence = fields.Char(string='Sequence', readonly=True)
     department_id = fields.Many2one(comodel_name='hospital.department', string='Department')
@@ -62,6 +63,16 @@ class PurchaseIndent(models.Model):
 
         for rec in recs:
             rec.check_product_stock_location()
+
+    def check_atleast_one_product(self):
+        recs = self.indent_detail
+
+        qty = 0
+        for rec in recs:
+            qty = qty + rec.accepted_quantity
+
+        if not qty:
+            raise exceptions.ValidationError('Error! Atleast one product need accepted quantity')
 
     def check_progress_access(self):
         group_list = []
@@ -123,6 +134,7 @@ class PurchaseIndent(models.Model):
     @api.multi
     def trigger_hod_approved(self):
         self.check_progress_access()
+        self.check_atleast_one_product()
         data = {
             'progress': 'hod_approved',
             'approved_on': datetime.now().strftime('%Y-%m-%d'),
