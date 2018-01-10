@@ -74,6 +74,14 @@ class PurchaseIndent(models.Model):
         if not qty:
             raise exceptions.ValidationError('Error! Atleast one product need accepted quantity')
 
+    def check_vs_cancellation(self):
+        recs = self.env['vendor.selection'].search([('indent_id', '=', self.id)])
+
+        for rec in recs:
+            if rec.progress != 'cancel':
+                raise exceptions.ValidationError('Error! Please cancel all related vendor selection to cancel this indent')
+
+    # Access Function
     def check_progress_access(self):
         group_list = []
         if self.progress in ['draft', False]:
@@ -117,6 +125,67 @@ class PurchaseIndent(models.Model):
             }
             obj.create(seq)
 
+    # Smart Button
+    @api.multi
+    def smart_vendor_selection(self):
+        view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_vendor_selection_tree')[1]
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Vendor Selection',
+            'view_mode': 'tree',
+            'view_type': 'form',
+            'view_id': view_id,
+            'domain': [('indent_id', '=', self.id)],
+            'res_model': 'vendor.selection',
+            'target': 'current',
+        }
+
+    @api.multi
+    def smart_quotation_request(self):
+        view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_quotation_request_tree')[1]
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Quotation Request',
+            'view_mode': 'tree',
+            'view_type': 'form',
+            'view_id': view_id,
+            'domain': [('pi_id', '=', self.id)],
+            'res_model': 'quotation.request',
+            'target': 'current',
+        }
+
+    @api.multi
+    def smart_purchase_order(self):
+        view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_purchase_order_tree')[1]
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Purchase Order',
+            'view_mode': 'tree',
+            'view_type': 'form',
+            'view_id': view_id,
+            'domain': [('indent_id', '=', self.id)],
+            'res_model': 'purchase.order',
+            'target': 'current',
+        }
+
+    @api.multi
+    def smart_material_receipt(self):
+        view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_material_receipt_tree')[1]
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Material Receipt',
+            'view_mode': 'tree',
+            'view_type': 'form',
+            'view_id': view_id,
+            'domain': [('indent_id', '=', self.id)],
+            'res_model': 'material.receipt',
+            'target': 'current',
+        }
+
     # Button Action
     @api.multi
     def trigger_wha(self):
@@ -145,11 +214,14 @@ class PurchaseIndent(models.Model):
     @api.multi
     def trigger_cancel(self):
         self.check_progress_access()
+        self.check_vs_cancellation()
         self.write({'progress': 'cancel'})
 
     @api.multi
     def trigger_closed(self):
         self.check_progress_access()
+        if not self.comment:
+            raise exceptions.ValidationError('Error! Comments required for closing indent')
         self.write({'progress': 'closed'})
 
     # Default Function
@@ -185,11 +257,7 @@ class PIDetail(models.Model):
     requested_quantity = fields.Float(string='Requested Quantity', required=True)
     accepted_quantity = fields.Float(string='Accepted Quantity')
     indent_id = fields.Many2one(comodel_name='purchase.indent', string='Purchase Indent')
-    progress = fields.Char(string='Progress', compute='get_progress', store=False)
-
-    def get_progress(self):
-        for rec in self:
-            rec.progress = rec.indent_id.progress
+    progress = fields.Selection(PROGRESS_INFO, string='Progress', related='indent_id.progress')
 
     def check_product_stock_location(self):
         stock_obj = self.env['product.stock']
@@ -199,6 +267,55 @@ class PIDetail(models.Model):
 
         if not product_stock:
             raise exceptions.ValidationError('Error! Stock Location for the Product: {0} is not available'.format(self.item_id.name))
+
+    def check_requested_quantity(self, vals):
+        if not vals['requested_quantity']:
+            raise exceptions.ValidationError('Error! Requested quantity must need')
+
+    # Access Function
+    def check_progress_access(self):
+        group_list = []
+        if self.progress in ['draft', False]:
+            group_list = ['Hospital User', 'Admin']
+        elif self.progress == 'wha':
+            group_list = ['Hospital HOD', 'Admin']
+        elif self.progress == 'hod_approved':
+            group_list = ['Hospital User', 'Admin']
+
+        if not self.check_group_access(group_list):
+            raise exceptions.ValidationError('Error! You are not authorised to change this record')
+
+    def check_group_access(self, group_list):
+        ''' Check if current user in the group list return True'''
+        group_ids = self.env.user.groups_id
+        status = False
+        for group in group_ids:
+            if group.name in group_list:
+                status = True
+        return status
+
+    # Default Function
+    @api.multi
+    def unlink(self):
+        self.check_progress_access()
+        if not self.progress:
+            res = super(PIDetail, self).unlink()
+        else:
+            raise exceptions.ValidationError('Error! You are not authorised to change this record')
+        return res
+
+    @api.multi
+    def write(self, vals):
+        self.check_progress_access()
+        res = super(PIDetail, self).write(vals)
+        return res
+
+    @api.model
+    def create(self, vals):
+        self.check_progress_access()
+        self.check_requested_quantity(vals)
+        res = super(PIDetail, self).create(vals)
+        return res
 
     _sql_constraints = [
         ('duplicate_product', 'unique (item_id, uom_id, indent_id)', "Duplicate Product"),

@@ -9,6 +9,7 @@
 			<form string="Purchase Order">
                 <header>
                     <field name="progress" widget="statusbar"/>
+                    <field name="po_type" widget="statusbar"/>
                     <button name="trigger_cancel" string="Cancel" type="object"/>
                 </header>
                 <sheet>
@@ -16,15 +17,17 @@
                     <h1><field name="sequence"/></h1>
                     <group col="4" colspan="2">
                         <field name="indent_id"/>
+                        <field name="qr_id"/>
                         <field name="po_type"/>
                         <field name="date"/>
                         <field name="finalised_by"/>
                     </group>
-                    <field name="po_detail">
+                    <field name="po_detail" create="false">
                         <tree editable="bottom">
                             <field name="item_id"/>
                             <field name="uom_id"/>
                             <field name="quantity"/>
+                            <field name="unit_price"/>
                             <field name="tax_id"/>
                             <field name="pf"/>
                             <field name="total"/>

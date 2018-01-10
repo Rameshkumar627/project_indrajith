@@ -2,6 +2,7 @@
 
 from odoo import models, fields, api, _, exceptions
 from datetime import datetime
+from purchase_calculation import PurchaseCalculation as PC
 
 
 PROGRESS_INFO = [('po_raised', 'PO Raised'), ('cancel', 'Cancel')]
@@ -11,6 +12,7 @@ PO_TYPE = [('direct_po', 'Direct PO'), ('normal_po', 'Normal PO'), ('amendment_o
 class PurchaseOrder(models.Model):
     _name = 'purchase.order'
     _description = 'Purchase Order'
+    _rec_name = 'sequence'
 
     sequence = fields.Char(string='Sequence', readonly=True)
     po_type = fields.Selection(PO_TYPE, string='PO Type', readonly=True)
@@ -38,8 +40,58 @@ class PurchaseOrder(models.Model):
 
     comment = fields.Text(string='Comment')
 
+    @api.multi
+    def trigger_update(self):
+        self.check_progress_access()
+        recs = self.po_detail
+
+        for rec in recs:
+            rec.trigger_update()
+
+        igst = cgst = sgst = 0
+        tax_amount = taxed_amount = un_taxed_amount = 0
+        pf_amount = discount_amount = 0
+        total = 0
+        for rec in recs:
+            igst = igst + rec.igst
+            cgst = cgst + rec.cgst
+            sgst = sgst + rec.sgst
+            tax_amount = tax_amount + rec.tax_amount
+            taxed_amount = taxed_amount + rec.taxed_amount
+            un_taxed_amount = un_taxed_amount + rec.un_taxed_amount
+            pf_amount = pf_amount + rec.pf_amount
+            discount_amount = discount_amount + rec.discount_amount
+            total = total + rec.total
+        pf_amount = pf_amount + self.overall_pf
+        discount_amount = discount_amount + self.overall_discount
+        gross_amount = total - self.overall_discount + self.overall_pf
+
+        round_off = round(gross_amount, 2)
+
+        data = {
+            'igst': igst,
+            'cgst': cgst,
+            'sgst': sgst,
+            'tax_amount': tax_amount,
+            'taxed_amount': taxed_amount,
+            'un_taxed_amount': un_taxed_amount,
+            'pf_amount': pf_amount,
+            'discount_amount': discount_amount,
+            'grand_total': total,
+            'round_off': gross_amount - round_off,
+            'gross_amount': gross_amount,
+            'net_amount': gross_amount + round_off,
+        }
+        self.write(data)
+
+    def check_mr_cancellation(self):
+        recs = self.env['material.receipt'].search([('po_id', '=', self.id)])
+        if recs:
+            raise exceptions.ValidationError('Error! Material receipt is generated you cannot cancel this record PO')
+
     def trigger_cancel(self):
         self.check_progress_access()
+        self.check_mr_cancellation()
         self.write({'progress': 'cancel'})
 
     def check_progress_access(self):
@@ -111,6 +163,34 @@ class PODetail(models.Model):
     total = fields.Float(string='Total', readonly=True)
     po_id = fields.Many2one(comodel_name='purchase.order', string='Purchase Order')
     progress = fields.Char(string='Progress', compute='get_progress', store=False)
+
+    def trigger_update(self):
+        price = self.quantity * self.unit_price
+
+        pc_obj = PC()
+        discount_amount = pc_obj.calculate_percentage(price, self.discount)
+
+        amt_after_discount = price - discount_amount
+        igst, cgst, sgst = pc_obj.calculate_tax(amt_after_discount, self.tax_id.tax, self.tax_id.name)
+
+        tax_amount = igst + cgst + sgst
+        pf_amount = pc_obj.calculate_percentage(amt_after_discount, self.pf)
+
+        total = amt_after_discount + tax_amount + pf_amount
+
+        data = {'discount_amount': discount_amount,
+                'amt_after_discount': amt_after_discount,
+                'pf_amount': pf_amount,
+                'igst': igst,
+                'cgst': cgst,
+                'sgst': sgst,
+                'tax_amount': tax_amount,
+                'taxed_amount': 0,
+                'un_taxed_amount': 0,
+                'total': total
+                }
+
+        self.write(data)
 
     def get_progress(self):
         for rec in self:

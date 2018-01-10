@@ -6,7 +6,11 @@
 		<field name="name">material.receipt.form</field>
 		<field name="model">material.receipt</field>
 		<field name="arch" type="xml">
-			<form string="Material Receipt">
+            <header>
+                <field name="progress" widget="statusbar"/>
+                <button name="trigger_update" string="Update" type="object"/>
+            </header>
+            <form string="Material Receipt">
                 <sheet>
                     <separator string="Material Receipt" style="text-align:center;"/>
                     <h1><field name="sequence"/></h1>
@@ -17,9 +21,15 @@
                         <field name="received_by"/>
                     </group>
                     <field name="mr_detail">
-                        <tree editable="bottom">
+                        <tree editable="bottom" create="false">
                             <field name="item_id"/>
                             <field name="uom_id"/>
+                            <field name="requested_quantity"/>
+                            <field name="received_quantity"/>
+                            <field name="accepted_quantity"/>
+                            <field name="balance_quantity"/>
+                            <field name="unit_price"/>
+                            <field name="discount"/>
                             <field name="tax_id"/>
                             <field name="pf"/>
                             <field name="total"/>

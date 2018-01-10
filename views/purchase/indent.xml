@@ -20,7 +20,18 @@
                 </header>
 				<sheet>
                     <separator string="Purchase Indent" style="text-align:center;"/>
+                    <div class="oe_button_box" name="button_box">
+						<button class="oe_stat_button" name="smart_vendor_selection"
+								string="Vendor Selection" type="object"/>
+						<button class="oe_stat_button" name="smart_quotation_request"
+								string="Quote Request" type="object"/>
+						<button class="oe_stat_button" name="smart_purchase_order"
+								string="Purchase Order" type="object"/>
+                        <button class="oe_stat_button" name="smart_material_receipt"
+								string="Material Receipt" type="object"/>
+					</div>
                     <h1><field name="sequence" readonly="1"/></h1>
+
                     <group col="4" colspan="2">
                         <field name="requested_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
                         <field name="requested_on" readonly="1"/>
@@ -28,7 +39,8 @@
                         <field name="approved_on" readonly="1"/>
                         <field name="department_id" readonly="1"/>
                     </group>
-                    <field name="indent_detail" attrs="{'readonly':[('progress', 'in',['hod_approved', 'cancel', 'closed'])]}">
+                    <field name="indent_detail"
+                           attrs="{'readonly':[('progress', 'in',['hod_approved', 'cancel', 'closed'])]}">
                         <tree editable="bottom">
                             <field name="item_id" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
                             <field name="uom_id"

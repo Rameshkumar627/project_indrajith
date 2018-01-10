@@ -316,7 +316,6 @@ class VSQuoteDetail(models.Model):
             rec.progress = rec.vs_quote_id.selection_id.progress
 
     def trigger_update(self):
-        print "i call"
         price = self.accepted_quantity * self.unit_price
 
         pc_obj = PC()
