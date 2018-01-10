@@ -61,7 +61,7 @@ class QuotationRequest(models.Model):
         recs = self.request_detail
 
         for rec in recs:
-            rec.trigger_update()
+            rec.calculate_total()
 
         igst = cgst = sgst = 0
         tax_amount = taxed_amount = un_taxed_amount = 0
@@ -97,7 +97,7 @@ class QuotationRequest(models.Model):
                 'gross_amount': gross_amount,
                 'net_amount': gross_amount + round_off,
                 }
-        print recs
+
         self.write(data)
 
     def create_sequence(self):

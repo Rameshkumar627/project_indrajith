@@ -2,27 +2,24 @@
 <odoo>
 
 	<!--Form View-->
-	<record model="ir.ui.view" id="view_purchase_order_from">
-		<field name="name">purchase.order.form</field>
-		<field name="model">purchase.order</field>
+	<record model="ir.ui.view" id="view_direct_purchase_order_from">
+		<field name="name">direct.purchase.order.form</field>
+		<field name="model">direct.purchase.order</field>
 		<field name="arch" type="xml">
-			<form string="Purchase Order">
+			<form string="Direct Purchase Order">
                 <header>
                     <field name="progress" widget="statusbar"/>
                     <field name="po_type" widget="statusbar"/>
                     <button name="trigger_cancel" string="Cancel" type="object"/>
                 </header>
                 <sheet>
-                    <separator string="Purchase Order" style="text-align:center;"/>
+                    <separator string="Direct Purchase Order" style="text-align:center;"/>
                     <h1><field name="sequence"/></h1>
                     <group col="4" colspan="2">
-                        <field name="indent_id"/>
-                        <field name="qr_id"/>
-                        <field name="po_type"/>
                         <field name="date"/>
                         <field name="finalised_by"/>
                     </group>
-                    <field name="po_detail" create="false" delete="false">
+                    <field name="dpo_detail" create="false" delete="false">
                         <tree editable="bottom">
                             <field name="item_id"/>
                             <field name="uom_id"/>
@@ -40,21 +37,20 @@
 	</record>
 
 	<!--Tree View-->
-	<record model="ir.ui.view" id="view_purchase_order_tree">
-		<field name="name">purchase.order.tree</field>
-		<field name="model">purchase.order</field>
+	<record model="ir.ui.view" id="view_direct_purchase_order_tree">
+		<field name="name">direct.purchase.order.tree</field>
+		<field name="model">direct.purchase.order</field>
 		<field name="arch" type="xml">
-			<tree string="Purchase Order">
+			<tree string="Direct Purchase Order">
                 <field name="sequence"/>
-                <field name="indent_id"/>
 			</tree>
 		</field>
 	</record>
 
 	<!--Action-->
-	<record model="ir.actions.act_window" id="action_purchase_order">
-        <field name="name">Purchase Order</field>
-        <field name="res_model">purchase.order</field>
+	<record model="ir.actions.act_window" id="action_direct_purchase_order">
+        <field name="name">Direct Purchase Order</field>
+        <field name="res_model">direct.purchase.order</field>
         <field name="view_type">form</field>
         <field name="limit">50</field>
         <field name="view_mode">tree,form</field>

@@ -56,7 +56,7 @@ class MaterialReceipt(models.Model):
 
         for rec in recs:
             rec.check_quantity()
-            rec.trigger_update()
+            rec.calculate_total()
 
         igst = cgst = sgst = 0
         tax_amount = taxed_amount = un_taxed_amount = 0
@@ -200,11 +200,7 @@ class MRDetail(models.Model):
     taxed_amount = fields.Float(string='Taxed Amount', readonly=True)
     un_taxed_amount = fields.Float(string='Untaxed Amount', readonly=True)
     total = fields.Float(string='Total', readonly=True)
-    progress = fields.Char(string='Progress', compute='get_progress', store=False)
-
-    def get_progress(self):
-        for rec in self:
-            rec.progress = rec.mr_id.progress
+    progress = fields.Selection(PROGRESS_INFO, string='Progress', related='mr_id.progress')
 
     def check_quantity(self):
         if self.requested_quantity > self.received_quantity:
@@ -229,7 +225,7 @@ class MRDetail(models.Model):
         add_quantity = store_stock + self.accepted_quantity
         store_stock.write({'quantity': add_quantity})
 
-    def trigger_update(self):
+    def calculate_total(self):
         price = self.accepted_quantity * self.unit_price
 
         pc_obj = PC()

@@ -5,24 +5,20 @@ from datetime import datetime
 from purchase_calculation import PurchaseCalculation as PC
 
 
-PROGRESS_INFO = [('po_raised', 'PO Raised'), ('cancel', 'Cancel')]
-PO_TYPE = [('direct_po', 'Direct PO'), ('normal_po', 'Normal PO'), ('amendment_order', 'Amendment Order')]
+PROGRESS_INFO = [('draft', 'Draft'), ('dpo_raised', 'Direct PO Raised')]
 
 
-class PurchaseOrder(models.Model):
-    _name = 'purchase.order'
-    _description = 'Purchase Order'
+class DirectPurchaseOrder(models.Model):
+    _name = 'direct.purchase.order'
+    _description = 'Direct Purchase Order'
     _rec_name = 'sequence'
 
     sequence = fields.Char(string='Sequence', readonly=True)
-    po_type = fields.Selection(PO_TYPE, string='PO Type', readonly=True)
     date = fields.Date(string='Date', readonly=True)
-    indent_id = fields.Many2one(comodel_name='purchase.indent', string='Purchase Indent', readonly=True)
-    qr_id = fields.Many2one(comodel_name='quotation.request', string='Quotation Request', readonly=True)
-    vendor_id = fields.Many2one(comodel_name='hospital.partner', string='Vendor', readonly=True)
-    po_detail = fields.One2many(comodel_name='po.detail', string='PO Detail', inverse_name='po_id')
+    vendor_id = fields.Many2one(comodel_name='hospital.partner', string='Vendor', required=True)
+    dpo_detail = fields.One2many(comodel_name='dpo.detail', string='DPO Detail', inverse_name='dpo_id')
     finalised_by = fields.Many2one(comodel_name='res.users', string='Finalised By', readonly=True)
-    progress = fields.Selection(PROGRESS_INFO, string='Progress')
+    progress = fields.Selection(PROGRESS_INFO, string='Progress', default='draft')
 
     igst = fields.Float(string='IGST', readonly=True)
     cgst = fields.Float(string='CGST', readonly=True)
@@ -44,7 +40,7 @@ class PurchaseOrder(models.Model):
     @api.multi
     def trigger_update(self):
         self.check_progress_access()
-        recs = self.po_detail
+        recs = self.dpo_detail
 
         for rec in recs:
             rec.calculate_total()
@@ -85,19 +81,19 @@ class PurchaseOrder(models.Model):
         }
         self.write(data)
 
-    def check_mr_cancellation(self):
-        recs = self.env['material.receipt'].search([('po_id', '=', self.id)])
-        if recs:
-            raise exceptions.ValidationError('Error! Material receipt is generated you cannot cancel this record PO')
+    def check_dpo_detail(self):
+        total = 0
+        recs = self.dpo_detail
 
-    def trigger_cancel(self):
-        self.check_progress_access()
-        self.check_mr_cancellation()
-        self.write({'progress': 'cancel'})
+        for rec in recs:
+            total = total + rec.total
+
+        if not total:
+            raise exceptions.ValidationError('Error! please check line items')
 
     def check_progress_access(self):
         group_list = []
-        if self.progress in ['po_raised', False]:
+        if self.progress in ['draft', False]:
             group_list = ['Hospital Management', 'Admin']
 
         if not self.check_group_access(group_list):
@@ -115,9 +111,41 @@ class PurchaseOrder(models.Model):
     def create_sequence(self):
         obj = self.env['ir.sequence'].sudo()
 
-        sequence = obj.next_by_code('purchase.order')
+        sequence = obj.next_by_code('direct.purchase.order')
         period = self.env['period.period'].search([('progress', '=', 'open')])
         return '{0}/{1}'.format(sequence, period.name)
+
+    def create_po(self):
+
+        data = {
+            'po_type': 'direct_po',
+            'vendor_id': self.vendor_id.id
+        }
+
+        po = self.env['purchase.order'].create(data)
+
+        data = {
+            'item_id': po.item_id.id,
+            'uom_id': po.uom_id.id,
+            'quantity': po.accepted_quantity,
+            'tax_id': po.tax_id.id,
+            'pf': po.pf,
+            'total': po.total,
+            'po_id': po.id,
+
+        }
+        po.dpo_detail.create(data)
+        po.trigger_update()
+
+    @api.multi
+    def trigger_dpo_raised(self):
+        self.check_progress_access()
+        self.trigger_update()
+        self.check_dpo_detail()
+        self.write({'progress': 'dpo_raised',
+                    'finalised_by': self.env.user.id})
+
+        self.create_po()
 
     @api.multi
     def unlink(self):
@@ -127,7 +155,7 @@ class PurchaseOrder(models.Model):
     @api.multi
     def write(self, vals):
         self.check_progress_access()
-        res = super(PurchaseOrder, self).write(vals)
+        res = super(DirectPurchaseOrder, self).write(vals)
         return res
 
     @api.model
@@ -135,25 +163,24 @@ class PurchaseOrder(models.Model):
         self.check_progress_access()
         vals['date'] = datetime.now().strftime('%Y-%m-%d')
         vals['sequence'] = self.create_sequence()
-        vals['finalised_by'] = self.env.user.id
 
-        res = super(PurchaseOrder, self).create(vals)
+        res = super(DirectPurchaseOrder, self).create(vals)
         return res
 
 
-class PODetail(models.Model):
-    _name = 'po.detail'
+class DPODetail(models.Model):
+    _name = 'dpo.detail'
     _description = 'Purchase Order Details'
 
-    item_id = fields.Many2one(comodel_name='product.product', string='Item', readonly=True)
-    uom_id = fields.Many2one(comodel_name='product.uom', string='UOM', readonly=True)
-    quantity = fields.Float(string='Quantity', readonly=True)
-    unit_price = fields.Float(string='Unit Price', readonly=True)
+    item_id = fields.Many2one(comodel_name='product.product', string='Item', required=True)
+    uom_id = fields.Many2one(comodel_name='product.uom', string='UOM', required=True)
+    quantity = fields.Float(string='Quantity', required=True)
+    unit_price = fields.Float(string='Unit Price', required=True)
     discount = fields.Float(string='Discount')
     discount_amount = fields.Float(string='Discount Amount', readonly=True)
     amt_after_discount = fields.Float(string='Amount After Discount', readonly=True)
-    tax_id = fields.Many2one(comodel_name='product.tax', string='Tax', readonly=True)
-    pf = fields.Float(string='Packing Forwarding', readonly=True)
+    tax_id = fields.Many2one(comodel_name='product.tax', string='Tax', required=True)
+    pf = fields.Float(string='Packing Forwarding', required=True)
     pf_amount = fields.Float(string='Packing Forwading Amount', readonly=True)
     cgst = fields.Float(string='CGST', readonly=True)
     sgst = fields.Float(string='SGST', readonly=True)
@@ -161,9 +188,9 @@ class PODetail(models.Model):
     tax_amount = fields.Float(string='Tax Amount', readonly=True)
     taxed_amount = fields.Float(string='Taxed Amount', readonly=True)
     un_taxed_amount = fields.Float(string='Untaxed Amount', readonly=True)
-    total = fields.Float(string='Total', readonly=True)
-    po_id = fields.Many2one(comodel_name='purchase.order', string='Purchase Order')
-    progress = fields.Selection(PROGRESS_INFO, string='Progress', related='po_id.progress')
+    total = fields.Float(string='Total', required=True)
+    dpo_id = fields.Many2one(comodel_name='direct.purchase.order', string='Direct Purchase Order')
+    progress = fields.Selection(PROGRESS_INFO, string='Progress', related='dpo_id.progress')
 
     def calculate_total(self):
         price = self.quantity * self.unit_price
@@ -195,7 +222,7 @@ class PODetail(models.Model):
 
     def check_progress_access(self):
         group_list = []
-        if self.progress in ['po_raised', False]:
+        if self.progress in ['draft', False]:
             group_list = ['Hospital Management', 'Admin']
 
         if not self.check_group_access(group_list):
@@ -209,6 +236,17 @@ class PODetail(models.Model):
             if group.name in group_list:
                 status = True
         return status
+
+    @api.multi
+    def unlink(self):
+        self.check_progress_access()
+        raise exceptions.ValidationError('Error! You are not authorised to delete this record')
+
+    @api.multi
+    def write(self, vals):
+        self.check_progress_access()
+        res = super(DPODetail, self).write(vals)
+        return res
 
     @api.model
     def create(self, vals):

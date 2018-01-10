@@ -22,17 +22,30 @@
                         <field name="processed_on"/>
                     </group>
                     <field name="request_detail">
-                        <!--<tree editable="bottom">-->
-                            <!--<field name="item_id"/>-->
-                            <!--<field name="uom_id"/>-->
-                            <!--<field name="requested_quantity"/>-->
-                            <!--<field name="accepted_quantity"/>-->
-                            <!--<field name="discount"/>-->
-                            <!--<field name="tax_id"/>-->
-                            <!--<field name="pf"/>-->
-                            <!--<field name="total"/>-->
-                            <!--<field name="request_id"/>-->
-                        <!--</tree>-->
+                        <tree editable="bottom" create="false" delete="false">
+                            <field name="item_id"/>
+                            <field name="uom_id"/>
+                            <field name="requested_quantity"/>
+                            <field name="accepted_quantity"/>
+                            <field name="discount"/>
+                            <field name="tax_id"/>
+                            <field name="pf"/>
+                            <field name="total"/>
+                            <field name="request_id"/>
+                        </tree>
+                        <form string="Quotation Request Detail">
+                            <group col="4" colspan="2">
+                                <field name="item_id"/>
+                                <field name="uom_id"/>
+                                <field name="requested_quantity"/>
+                                <field name="accepted_quantity"/>
+                                <field name="discount"/>
+                                <field name="tax_id"/>
+                                <field name="pf"/>
+                                <field name="total"/>
+                                <field name="request_id"/>
+                            </group>
+                        </form>
                     </field>
                     <group>
                         <field name="grand_total"/>

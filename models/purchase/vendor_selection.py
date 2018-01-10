@@ -35,16 +35,22 @@ PROGRESS_INFO = [('draft', 'Draft'),
 class VendorSelection(models.Model):
     _name = 'vendor.selection'
     _description = 'Vendor selection by procurement team'
+    _rec_name = 'date'
 
     date = fields.Date(string='Date', readonly=True)
-    indent_id = fields.Many2one(comodel_name='purchase.indent', string='Purchase Indent', required=True)
+    indent_id = fields.Many2one(comodel_name='purchase.indent',
+                                domain='[("progress", "=", "hod_approved")]',
+                                string='Purchase Indent',
+                                required=True)
     progress = fields.Selection(PROGRESS_INFO, default='draft', string='Progress')
     selection_detail = fields.One2many(comodel_name='vs.detail',
                                        inverse_name='selection_id', string='Vendor Selection Details')
     comment = fields.Text(string='Comment')
 
     def create_purchase_order(self):
-        recs = self.env['vs.quote.detail'].search([('vs_quote_id.selection_id', '=', self.id), ('accepted_quantity', '>', 0)])
+        recs = self.env['vs.quote.detail'].search([('vs_quote_id.selection_id', '=', self.id),
+                                                   ('accepted_quantity', '>', 0),
+                                                   ('total', '>', 0)])
 
         vendor_list = []
         for rec in recs:
@@ -64,6 +70,7 @@ class VendorSelection(models.Model):
                         'po_type': 'normal_po',
                         'indent_id': self.indent_id.id,
                         'qr_id': record.request_id.id,
+                        'vendor_id': vendor,
                     }
                     po = self.env['purchase.order'].create(data)
                 po_detail = self.env['po.detail'].search([('item_id', '=', record.item_id.id),
@@ -82,17 +89,18 @@ class VendorSelection(models.Model):
 
                     }
                     self.env['po.detail'].create(data)
+                po.trigger_update()
 
     def check_vs_quote_detail(self):
         records = self.selection_detail
 
         for record in records:
-            qty = 0
+            total = 0
             for rec in record.quote_detail:
-                qty = qty + rec.accepted_quantity
-            if not qty:
+                total = total + rec.accepted_quantity
+            if not total:
                 if not record.comment:
-                    raise exceptions.ValidationError('Error! Required comments if no quantity is given')
+                    raise exceptions.ValidationError('Error! Required comments if no quantity/ price is given')
 
     def create_quotation_request(self):
 
@@ -137,6 +145,35 @@ class VendorSelection(models.Model):
                 if po.state != 'cancel':
                     raise exceptions.ValidationError('''Error! Purchase order in progress. 
                     please cancel and continus cancel Vendir selection''')
+
+    # Smart Button
+    def smart_purchase_order(self):
+        view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_purchase_order_tree')[1]
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Purchase Order',
+            'view_mode': 'tree',
+            'view_type': 'form',
+            'view_id': view_id,
+            'domain': [('indent_id', '=', self.indent_id.id)],
+            'res_model': 'purchase.order',
+            'target': 'current',
+        }
+
+    def smart_material_receipt(self):
+        view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_material_receipt_tree')[1]
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Material Receipt',
+            'view_mode': 'tree',
+            'view_type': 'form',
+            'view_id': view_id,
+            'domain': [('indent_id', '=', self.indent_id.id)],
+            'res_model': 'material.receipt',
+            'target': 'current',
+        }
 
     # Button Action
     @api.multi
@@ -242,11 +279,7 @@ class VSDetail(models.Model):
                                    string='Quote Detail')
     comment = fields.Text(string='Comment')
     selection_id = fields.Many2one(comodel_name='vendor.selection', string='Vendor Selection')
-    progress = fields.Char(string='Progress', compute='get_progress', store=False)
-
-    def get_progress(self):
-        for rec in self:
-            rec.progress = rec.selection_id.progress
+    progress = fields.Selection(PROGRESS_INFO, string='Progress', related='selection_id.progress')
 
     def check_progress_access(self):
         group_list = []
@@ -309,13 +342,9 @@ class VSQuoteDetail(models.Model):
     total = fields.Float(string='Total', default=0, readonly=True)
     vs_quote_id = fields.Many2one(comodel_name='vs.detail', string='Vendor Selection')
     request_id = fields.Many2one(comodel_name='quotation.request', string='Quotation Request')
-    progress = fields.Char(string='Progress', compute='get_progress', store=False)
+    progress = fields.Selection(PROGRESS_INFO, string='Progress', related='request_id.progress')
 
-    def get_progress(self):
-        for rec in self:
-            rec.progress = rec.vs_quote_id.selection_id.progress
-
-    def trigger_update(self):
+    def calculate_total(self):
         price = self.accepted_quantity * self.unit_price
 
         pc_obj = PC()
