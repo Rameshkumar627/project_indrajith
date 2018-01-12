@@ -20,6 +20,7 @@ class PurchaseOrder(models.Model):
     indent_id = fields.Many2one(comodel_name='purchase.indent', string='Purchase Indent', readonly=True)
     qr_id = fields.Many2one(comodel_name='quotation.request', string='Quotation Request', readonly=True)
     vendor_id = fields.Many2one(comodel_name='hospital.partner', string='Vendor', readonly=True)
+    amendment_id = fields.Many2one(comodel_name='purchase.order', string='Amendment Order', readonly=True)
     po_detail = fields.One2many(comodel_name='po.detail', string='PO Detail', inverse_name='po_id')
     finalised_by = fields.Many2one(comodel_name='res.users', string='Finalised By', readonly=True)
     progress = fields.Selection(PROGRESS_INFO, string='Progress')

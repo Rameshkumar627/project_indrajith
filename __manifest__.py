@@ -32,6 +32,7 @@
         'views/purchase/quotation_request.xml',
         'views/purchase/purchase_order.xml',
         'views/purchase/direct_purchase_order.xml',
+        'views/purchase/amendment_order.xml',
         'views/purchase/material_receipt.xml',
         'menu/purchase_menu.xml',
         'data/store.xml',

@@ -26,10 +26,22 @@
               action="action_purchase_order"
               sequence="40"/>
 
+    <menuitem name="Direct Purchase"
+              id="direct_purchase_order_menu"
+              parent="purchase_menu"
+              action="action_direct_purchase_order"
+              sequence="50"/>
+
+    <menuitem name="Amendment Order"
+              id="purchase_order_menu"
+              parent="purchase_menu"
+              action="action_amendment_order"
+              sequence="60"/>
+
     <menuitem name="Material Receipt"
               id="material_receipt_menu"
               parent="purchase_menu"
               action="action_material_receipt"
-              sequence="50"/>
+              sequence="70"/>
 
 </odoo>

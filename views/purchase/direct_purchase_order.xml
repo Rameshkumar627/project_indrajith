@@ -9,14 +9,14 @@
 			<form string="Direct Purchase Order">
                 <header>
                     <field name="progress" widget="statusbar"/>
-                    <field name="po_type" widget="statusbar"/>
-                    <button name="trigger_cancel" string="Cancel" type="object"/>
+                    <button name="trigger_dpo_raised" string="Update" type="object"/>
                 </header>
                 <sheet>
                     <separator string="Direct Purchase Order" style="text-align:center;"/>
                     <h1><field name="sequence"/></h1>
                     <group col="4" colspan="2">
                         <field name="date"/>
+                        <field name="vendor_id"/>
                         <field name="finalised_by"/>
                     </group>
                     <field name="dpo_detail" create="false" delete="false">

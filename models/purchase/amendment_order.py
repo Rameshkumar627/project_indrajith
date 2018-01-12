@@ -8,15 +8,18 @@ from purchase_calculation import PurchaseCalculation as PC
 PROGRESS_INFO = [('draft', 'Draft'), ('dpo_raised', 'Direct PO Raised')]
 
 
-class DirectPurchaseOrder(models.Model):
-    _name = 'direct.purchase.order'
+class AmendmentOrder(models.Model):
+    _name = 'amendment.order'
     _description = 'Direct Purchase Order'
     _rec_name = 'sequence'
 
     sequence = fields.Char(string='Sequence', readonly=True)
     date = fields.Date(string='Date', readonly=True)
-    vendor_id = fields.Many2one(comodel_name='hospital.partner', string='Vendor', required=True)
-    dpo_detail = fields.One2many(comodel_name='dpo.detail', string='DPO Detail', inverse_name='dpo_id')
+    po_id = fields.Many2one(comodel_name='purchase.order',
+                            domain=[('progress', '=', 'po_raised')],
+                            string='Purchase Order',
+                            required=True)
+    apo_detail = fields.One2many(comodel_name='apo.detail', string='APO Detail', inverse_name='apo_id')
     finalised_by = fields.Many2one(comodel_name='res.users', string='Finalised By', readonly=True)
     progress = fields.Selection(PROGRESS_INFO, string='Progress', default='draft')
 
@@ -40,7 +43,7 @@ class DirectPurchaseOrder(models.Model):
     @api.multi
     def trigger_update(self):
         self.check_progress_access()
-        recs = self.dpo_detail
+        recs = self.apo_detail
 
         for rec in recs:
             rec.calculate_total()
@@ -81,9 +84,15 @@ class DirectPurchaseOrder(models.Model):
         }
         self.write(data)
 
-    def check_dpo_detail(self):
+    def check_mr(self, res):
+        mrs = self.env['material.receipt'].search([('po_id', '=', res)])
+
+        if mrs:
+            raise exceptions.ValidationError('Error! Material Receipt in progress')
+
+    def check_apo_detail(self):
         total = 0
-        recs = self.dpo_detail
+        recs = self.apo_detail
 
         for rec in recs:
             total = total + rec.total
@@ -111,20 +120,24 @@ class DirectPurchaseOrder(models.Model):
     def create_sequence(self):
         obj = self.env['ir.sequence'].sudo()
 
-        sequence = obj.next_by_code('direct.purchase.order')
+        sequence = obj.next_by_code('amendment.order')
         period = self.env['period.period'].search([('progress', '=', 'open')])
         return '{0}/{1}'.format(sequence, period.name)
 
     def create_po(self):
 
         data = {
-            'po_type': 'direct_po',
-            'vendor_id': self.vendor_id.id
+            'po_type': 'amendment_order',
+            'date': self.po_id.date,
+            'indent_id': self.po_id.indent_id.id,
+            'qr_id': self.po_id.qr_id.id,
+            'finalised_by': self.po_id.finalised_by.id,
         }
 
         po = self.env['purchase.order'].create(data)
+        self.po_id.wrire({'amendment_id': self.po.id, 'progress': 'cancel'})
 
-        recs = self.dpo_detail
+        recs = self.apo_detail
         for rec in recs:
             data = {
                 'item_id': rec.item_id.id,
@@ -142,11 +155,11 @@ class DirectPurchaseOrder(models.Model):
         po.write({'progress': 'po_raised'})
 
     @api.multi
-    def trigger_dpo_raised(self):
+    def trigger_apo_raised(self):
         self.check_progress_access()
         self.trigger_update()
-        self.check_dpo_detail()
-        self.write({'progress': 'dpo_raised',
+        self.check_apo_detail()
+        self.write({'progress': 'apo_raised',
                     'finalised_by': self.env.user.id})
 
         self.create_po()
@@ -159,22 +172,22 @@ class DirectPurchaseOrder(models.Model):
     @api.multi
     def write(self, vals):
         self.check_progress_access()
-        res = super(DirectPurchaseOrder, self).write(vals)
+        res = super(AmendmentOrder, self).write(vals)
         return res
 
     @api.model
     def create(self, vals):
         self.check_progress_access()
+        self.check_mr(vals['po_id'])
         vals['date'] = datetime.now().strftime('%Y-%m-%d')
         vals['sequence'] = self.create_sequence()
-
-        res = super(DirectPurchaseOrder, self).create(vals)
+        res = super(AmendmentOrder, self).create(vals)
         return res
 
 
-class DPODetail(models.Model):
-    _name = 'dpo.detail'
-    _description = 'Purchase Order Details'
+class APODetail(models.Model):
+    _name = 'apo.detail'
+    _description = 'Amendment Order Details'
 
     item_id = fields.Many2one(comodel_name='product.product', string='Item', required=True)
     uom_id = fields.Many2one(comodel_name='product.uom', string='UOM', required=True)
@@ -193,8 +206,8 @@ class DPODetail(models.Model):
     taxed_amount = fields.Float(string='Taxed Amount', readonly=True)
     un_taxed_amount = fields.Float(string='Untaxed Amount', readonly=True)
     total = fields.Float(string='Total', readonly=True)
-    dpo_id = fields.Many2one(comodel_name='direct.purchase.order', string='Direct Purchase Order')
-    progress = fields.Selection(PROGRESS_INFO, string='Progress', related='dpo_id.progress')
+    apo_id = fields.Many2one(comodel_name='amendment.order', string='Amendment Order')
+    progress = fields.Selection(PROGRESS_INFO, string='Progress', related='apo_id.progress')
 
     def calculate_total(self):
         price = self.quantity * self.unit_price
@@ -249,11 +262,11 @@ class DPODetail(models.Model):
     @api.multi
     def write(self, vals):
         self.check_progress_access()
-        res = super(DPODetail, self).write(vals)
+        res = super(APODetail, self).write(vals)
         return res
 
     @api.model
     def create(self, vals):
         self.check_progress_access()
-        res = super(DPODetail, self).create(vals)
+        res = super(APODetail, self).create(vals)
         return res

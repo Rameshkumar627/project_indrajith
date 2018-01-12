@@ -17,7 +17,10 @@ class MaterialReceipt(models.Model):
     date = fields.Date(string='Date', readonly=True)
     indent_id = fields.Many2one(comodel_name='purchase.indent', string='Purchase Indent', readonly=True)
     qr_id = fields.Many2one(comodel_name='quotation.request', string='Quotation Request', readonly=True)
-    po_id = fields.Many2one(comodel_name='purchase.order', string='Purchase Order', required=True)
+    po_id = fields.Many2one(comodel_name='purchase.order',
+                            string='Purchase Order',
+                            domain=[('progress', '=', 'po_raised')],
+                            required=True)
     mr_detail = fields.One2many(comodel_name='mr.detail', string='MR Detail', inverse_name='mr_id')
     received_by = fields.Many2one(comodel_name='res.users', string='Received By', readonly=True)
     inspected_by = fields.Many2one(comodel_name='res.users', string='Inspected By', readonly=True)
@@ -132,10 +135,11 @@ class MaterialReceipt(models.Model):
         vals['qr_id'] = po.qr_id.id
         vals['indent_id'] = po.indent_id.id
         vals['received_by'] = self.env.user.id
+
         return vals
 
     def create_mr_detail(self, res):
-        recs = self.env['po.detail'].search([('id', '=', res.po_id.id)])
+        recs = self.env['po.detail'].search([('po_id', '=', res.po_id.id)])
 
         for rec in recs:
             data = {
@@ -150,6 +154,9 @@ class MaterialReceipt(models.Model):
             }
 
             res.mr_detail.create(data)
+
+        if not self.env['mr.detail'].search([('mr_id', '=', res.id)]):
+            raise exceptions.ValidationError('Error! please try again')
 
     @api.multi
     def unlink(self):
@@ -168,6 +175,7 @@ class MaterialReceipt(models.Model):
         self.check_progress_access()
         self.check_existing_mr(vals)
         vals = self.default_vals_update(vals)
+
         res = super(MaterialReceipt, self).create(vals)
         self.create_mr_detail(res)
         return res

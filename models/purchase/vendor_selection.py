@@ -82,6 +82,7 @@ class VendorSelection(models.Model):
                         'item_id': record.item_id.id,
                         'uom_id': record.uom_id.id,
                         'quantity': record.accepted_quantity,
+                        'unit_price': record.unit_price,
                         'tax_id': record.tax_id.id,
                         'pf': record.pf,
                         'total': record.total,
@@ -90,6 +91,7 @@ class VendorSelection(models.Model):
                     }
                     self.env['po.detail'].create(data)
                 po.trigger_update()
+                po.write({'progress': 'po_raised'})
 
     def check_vs_quote_detail(self):
         records = self.selection_detail
