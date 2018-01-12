@@ -33,7 +33,7 @@
               sequence="50"/>
 
     <menuitem name="Amendment Order"
-              id="purchase_order_menu"
+              id="amendment_order_menu"
               parent="purchase_menu"
               action="action_amendment_order"
               sequence="60"/>

@@ -43,6 +43,21 @@ class PurchaseOrder(models.Model):
     comment = fields.Text(string='Comment')
 
     @api.multi
+    def smart_material_receipt(self):
+        view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_material_receipt_tree')[1]
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Material Receipt',
+            'view_mode': 'tree',
+            'view_type': 'form',
+            'view_id': view_id,
+            'domain': [('po_id', '=', self.id)],
+            'res_model': 'material.receipt',
+            'target': 'current',
+        }
+
+    @api.multi
     def trigger_update(self):
         self.check_progress_access()
         recs = self.po_detail

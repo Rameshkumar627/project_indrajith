@@ -9,10 +9,16 @@
 			<form string="Purchase Order">
                 <header>
                     <button name="trigger_cancel" string="Cancel" type="object"/>
+                    <field name="progress" widget="statusbar"/>
+                    <field name="po_type" widget="statusbar"/>
                 </header>
 
                 <sheet>
                     <separator string="Purchase Order" style="text-align:center;"/>
+                    <div class="oe_button_box" name="button_box">
+						<button class="oe_stat_button" name="smart_material_receipt"
+								string="Material Receipt" type="object"/>
+					</div>
                     <h1><field name="sequence"/></h1>
                     <group col="4" colspan="2">
                         <field name="indent_id"/>
@@ -21,8 +27,7 @@
                         <field name="date"/>
                         <field name="amendment_id"/>
                         <field name="finalised_by"/>
-                        <field name="progress" widget="statusbar"/>
-                        <field name="po_type" widget="statusbar"/>
+
                     </group>
                     <field name="po_detail" create="false" delete="false">
                         <tree editable="bottom">
