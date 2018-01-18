@@ -63,20 +63,9 @@ class StoreRequest(models.Model):
                                      inverse_name='request_id')
     comment = fields.Text(string='Comment')
 
-    def default_vals_update(self, vals):
-        vals['requested_by'] = self.env.user.id
-        vals['requested_on'] = datetime.now().strftime('%Y-%m-%d')
-        vals['department_id'] = self.env.user.department_id.id
-        return vals
-
-    def check_product_stock_location(self):
-        recs = self.request_detail
-
-        for rec in recs:
-            rec.check_product_stock_location()
-
     def check_store_issue(self):
-        recs = self.env['store.issue'].search([('request_id', '=', self.id)])
+        recs = self.env['store.issue'].search([('request_id', '=', self.id),
+                                               ('progress', '!=', 'issued')])
         if recs:
             raise exceptions.ValidationError('''Error! You can close this record, 
                                                 since the store already issue for this request''')
@@ -90,57 +79,33 @@ class StoreRequest(models.Model):
         elif self.progress == 'hod_approved':
             group_list = ['Hospital User', 'Hospital HOD', 'Hospital Store', 'Admin']
 
-        if not self.check_group_access(group_list):
+        outer_obj = self.env['check.group.access'].browse([('id', '=', 1)])
+        if not outer_obj.check_group_access(group_list):
             raise exceptions.ValidationError('Error! You are not authorised to change this record')
-
-    def check_group_access(self, group_list):
-        ''' Check if current user in the group list return True'''
-        group_ids = self.env.user.groups_id
-        status = False
-        for group in group_ids:
-            if group.name in group_list:
-                status = True
-        return status
 
     def create_sequence(self, department_id):
         obj = self.env['ir.sequence'].sudo()
-        self.department_sequence_creation(department_id)
+        outer_obj = self.env['check.group.access'].browse([('id', '=', 1)])
+        outer_obj.store_request_sequence_creation(department_id)
 
         sequence = obj.next_by_code('store.request.{0}'.format(department_id.name))
         period = self.env['period.period'].search([('progress', '=', 'open')])
         return '{0}/{1}'.format(sequence, period.name)
 
-    def department_sequence_creation(self, department_id):
-        obj = self.env['ir.sequence'].sudo()
-        if not obj.search([('code', '=', 'store.request.{0}'.format(department_id.name))]):
-            seq = {
-                'name': 'store.request.{0}'.format(department_id.name),
-                'implementation': 'standard',
-                'code': 'store.request.{0}'.format(department_id.name),
-                'prefix': 'SR/{0}/'.format(str(department_id.name)),
-                'padding': 4,
-                'number_increment': 1,
-                'use_date_range': False,
-            }
-            obj.create(seq)
-
     # Button Action
     @api.multi
     def trigger_wha(self):
-        self.check_progress_access()
-        self.check_product_stock_location()
         data = {
             'progress': 'wha',
             'requested_on': datetime.now().strftime('%Y-%m-%d'),
             'requested_by': self.env.user.id,
             'department_id': self.env.user.department_id.id,
-            'sequence': self.create_sequence(),
+            'sequence': self.create_sequence(self.env.user.department_id),
         }
         self.write(data)
 
     @api.multi
     def trigger_hod_approved(self):
-        self.check_progress_access()
         data = {
             'progress': 'hod_approved',
             'approved_on': datetime.now().strftime('%Y-%m-%d'),
@@ -150,23 +115,33 @@ class StoreRequest(models.Model):
 
     @api.multi
     def trigger_cancel(self):
-        self.check_progress_access()
         self.check_store_issue()
         self.write({'progress': 'cancel'})
 
     @api.multi
     def trigger_closed(self):
-        self.check_progress_access()
         self.write({'progress': 'closed'})
 
     @api.multi
+    def issue_trigger(self):
+        recs = self.request_detail
+
+        status = True
+        for rec in recs:
+            if not rec.check_issue_satisfied():
+                status = False
+
+        if status:
+            self.write({'progress': 'closed'})
+
+    @api.multi
     def smart_store_issue(self):
-        view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_store_request_tree')[1]
+        view_id = self.env['ir.model.data'].get_object_reference('project_indrajith', 'view_store_issue_tree')[1]
         return {
             'type': 'ir.actions.act_window',
             'name': 'Store Issue',
             'view_mode': 'tree',
-            'view_type': 'tree,form',
+            'view_type': 'form',
             'view_id': view_id,
             'domain': [('request_id', '=', self.id)],
             'res_model': 'store.issue',
@@ -177,23 +152,22 @@ class StoreRequest(models.Model):
     @api.multi
     def unlink(self):
         self.check_progress_access()
-        if self.progress:
+        if self.sequence:
             raise exceptions.ValidationError('Error! You are not authorised to change this record')
-        res = super(StoreRequest, self).unlink()
-        return res
+        return super(StoreRequest, self).unlink()
 
     @api.multi
     def write(self, vals):
         self.check_progress_access()
-        res = super(StoreRequest, self).write(vals)
-        return res
+        return super(StoreRequest, self).write(vals)
 
     @api.model
     def create(self, vals):
         self.check_progress_access()
-        vals = self.default_vals_update(vals)
-        res = super(StoreRequest, self).create(vals)
-        return res
+        vals['requested_by'] = self.env.user.id
+        vals['requested_on'] = datetime.now().strftime('%Y-%m-%d')
+        vals['department_id'] = self.env.user.department_id.id
+        return super(StoreRequest, self).create(vals)
 
 
 class SRDetail(models.Model):
@@ -205,20 +179,24 @@ class SRDetail(models.Model):
     req_qty = fields.Float(string='Requested Quantity', required=True)
     acc_qty = fields.Float(string='Accepted Quantity')
     request_id = fields.Many2one(comodel_name='store.request', string='Store Request')
-    progress = fields.Char(string='Progress', compute='get_progress', store=False)
+    progress = fields.Selection(PROGRESS_INFO, string='Progress', related='request_id.progress')
 
-    def get_progress(self):
-        for rec in self:
-            rec.progress = rec.request_id.progress
+    def check_issue_satisfied(self):
+        status = False
+        issued_qty = 0
+        issues = self.env['si.detail'].search([('item_id', '=', self.item_id.id),
+                                               ('uom_id', '=', self.uom_id.id),
+                                               ('issue_id.request_id', '=', self.request_id.id)])
 
-    def check_product_stock_location(self):
-        stock_obj = self.env['product.stock']
-        product_stock = stock_obj.search([('product_id', '=', self.item_id.id),
-                                          ('uom_id', '=', self.uom_id.id),
-                                          ('location_id', '=', self.request_id.location_id.id)])
+        for issue in issues:
+            issued_qty = issued_qty + issue.issuing_qty
 
-        if not product_stock:
-            raise exceptions.ValidationError('Error! Stock Location for the Product: {0} is not available'.format(self.item_id.name))
+        if self.acc_qty > issued_qty:
+            raise exceptions.ValidationError('Error! Issue is more than requested quantity')
+        if issued_qty == self.acc_qty:
+            status = True
+
+        return status
 
     _sql_constraints = [
         ('duplicate_product', 'unique (item_id, uom_id, request_id)', "Duplicate Product"),

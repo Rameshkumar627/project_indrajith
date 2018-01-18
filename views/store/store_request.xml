@@ -32,12 +32,14 @@
                         <field name="approved_by" readonly="1" options='{"no_open": True, "no_create": True}'/>
                         <field name="approved_on" readonly="1"/>
                         <field name="department_id" readonly="1"/>
-                        <field name="location_id" attrs="{'readonly':[('progress', 'not in',['draft'])]}"/>
+                        <field name="location_id" options="{'no_open': True, 'no_create': True}"
+                               attrs="{'readonly':[('progress', 'not in',['draft'])]}"/>
                     </group>
                     <field name="request_detail" attrs="{'readonly':[('progress', 'in',['hod_approved', 'cancel', 'closed'])]}">
                         <tree editable="bottom">
-                            <field name="item_id" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
-                            <field name="uom_id"
+                            <field name="item_id" options="{'no_open': True, 'no_create': True}"
+                                   attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
+                            <field name="uom_id" options="{'no_open': True, 'no_create': True}"
                                    domain="[('product_ids', '=', item_id)]"
                                    attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>
                             <field name="req_qty" attrs="{'readonly':[('progress', 'in',['wha', 'hod_approved', 'cancel', 'closed'])]}"/>

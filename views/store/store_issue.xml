@@ -22,10 +22,11 @@
                         <field name="issued_on" readonly="1"/>
                         <field name="department_id" readonly="1"/>
                         <field name="location_id" readonly="1"/>
-                        <field name="request_id" required="1"/>
+                        <field name="request_id" required="1" options="{'no_open': True, 'no_create': True}"
+                               attrs="{'readonly':[('progress', 'not in',['draft'])]}"/>
                     </group>
                     <field name="issue_detail" attrs="{'readonly':[('progress', 'not in',['draft'])]}">
-                        <tree editable="bottom">
+                        <tree editable="bottom" create="false" delete="false">
                             <field name="item_id" readonly="1"/>
                             <field name="uom_id" readonly="1"/>
                             <field name="req_qty" readonly="1"/>

@@ -26,17 +26,43 @@ class Stock(models.Model):
     # Access Function
     def check_progress_access(self):
         group_list = ['Product Manager']
-        if not self.check_group_access(group_list):
+        outer_obj = self.env['check.group.access'].browse([('id', '=', 1)])
+        if not outer_obj.check_group_access(group_list):
             raise exceptions.ValidationError('Error! You are not authorised to change this record')
 
-    def check_group_access(self, group_list):
-        ''' Check if current user in the group list return True'''
-        group_ids = self.env.user.groups_id
-        status = False
-        for group in group_ids:
-            if group.name in group_list:
-                status = True
-        return status
+    def stock_move(self, product, uom, from_location, to_location, qty):
+        product_obj = self.env['product.product'].sudo()
+        stock_obj = self.env['product.stock'].sudo()
+
+        if not product_obj.search([('uom_ids', '=', uom.id), ('id', '=', product.id)]):
+            raise exceptions.ValidationError('Product UOM not match')
+
+        from_stock_obj = stock_obj.search([('product_id', '=', product.id),
+                                           ('location_id', '=', from_location.id),
+                                           ('uom_id', '=', uom.id)])
+
+        if not from_stock_obj:
+            from_stock_obj = stock_obj.create({'product_id': product.id,
+                                               'uom_id': uom.id,
+                                               'location_id': from_location.id})
+
+        to_location_obj = stock_obj.search([('product_id', '=', product.id),
+                                            ('location_id', '=', to_location.id),
+                                            ('uom_id', '=', uom.id)])
+
+        if not to_location_obj:
+            to_location_obj = stock_obj.create({'product_id': product.id,
+                                                'uom_id': uom.id,
+                                                'location_id': to_location.id})
+
+        # Quantity:
+        reduce_qty = from_stock_obj.quantity - qty
+
+        if reduce_qty < 0:
+            raise exceptions.ValidationError('Error! Quantity is not sufficient to move')
+        else:
+            from_stock_obj.write({'quantity': from_stock_obj.quantity - qty})
+            to_location_obj.write({'quantity': to_location_obj.quantity + qty})
 
     @api.multi
     def unlink(self):

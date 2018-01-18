@@ -9,11 +9,36 @@
             <field name="code">100</field>
         </record>
 
+        <record id="scrap_stock_location" model="stock.location">
+            <field name="name">Scrap</field>
+            <field name="code">101</field>
+        </record>
+
         <record id="store_store_issue" model="ir.sequence">
-            <field name="name">Store Isssue</field>
+            <field name="name">Store Issue</field>
             <field name="implementation">standard</field>
             <field name="code">store.issue</field>
             <field name="prefix">SI/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="use_date_range">False</field>
+        </record>
+
+        <record id="store_store_scrap" model="ir.sequence">
+            <field name="name">Store Scrap</field>
+            <field name="implementation">standard</field>
+            <field name="code">store.scrap</field>
+            <field name="prefix">SS/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="use_date_range">False</field>
+        </record>
+
+        <record id="store_store_return" model="ir.sequence">
+            <field name="name">Store Return</field>
+            <field name="implementation">standard</field>
+            <field name="code">store.return</field>
+            <field name="prefix">SRN/</field>
             <field name="padding">4</field>
             <field name="number_increment">1</field>
             <field name="use_date_range">False</field>

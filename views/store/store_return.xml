@@ -8,7 +8,7 @@
 		<field name="arch" type="xml">
 			<form string="Store Return">
                 <header>
-                    <button name="trigger_issued" string="Issue" type="object" class="oe_highlight"
+                    <button name="trigger_return" string="Issue" type="object" class="oe_highlight"
                             attrs="{'invisible':[('progress', 'not in',['draft'])]}"/>
                     <field name="progress" widget="statusbar"/>
                 </header>
@@ -28,6 +28,8 @@
                         <tree editable="bottom">
                             <field name="item_id" readonly="1"/>
                             <field name="uom_id" readonly="1"/>
+                            <field name="issued_qty" readonly="1"/>
+                            <field name="already_return_qty" readonly="1"/>
                             <field name="returning_qty" attrs="{'readonly':[('progress', 'in',['issued'])]}"/>
                             <field name="progress" invisible="1"/>
                         </tree>

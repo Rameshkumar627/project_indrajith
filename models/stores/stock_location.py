@@ -20,17 +20,9 @@ class StockLocation(models.Model):
     # Access Function
     def check_progress_access(self):
         group_list = ['Product Manager']
-        if not self.check_group_access(group_list):
+        outer_obj = self.env['check.group.access'].browse([('id', '=', 1)])
+        if not outer_obj.check_group_access(group_list):
             raise exceptions.ValidationError('Error! You are not authorised to change this record')
-
-    def check_group_access(self, group_list):
-        ''' Check if current user in the group list return True'''
-        group_ids = self.env.user.groups_id
-        status = False
-        for group in group_ids:
-            if group.name in group_list:
-                status = True
-        return status
 
     # Default Functions
     @api.multi
