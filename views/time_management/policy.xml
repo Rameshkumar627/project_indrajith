@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_time_sheet_policy_from">
+		<field name="name">time.sheet.policy.form</field>
+		<field name="model">time.sheet.policy</field>
+		<field name="arch" type="xml">
+			<form string="Time Sheet Policy">
+                <header>
+                    <field name="progress" widget="statusbar"/>
+                </header>
+				<sheet>
+					<separator string="Time Sheet Policy" style="text-align:center;"/>
+                    <group>
+                        <field name="name" options="{'no_open': True, 'no_create': True}"
+							   attrs="{'readonly': [('progress', '=', 'confirmed')]}"/>
+						<field name="generated_by" invisible="1"/>
+						<field name="generated_on" invisible="1"/>
+                    </group>
+                    <button name="trigger_confirm" string="Confirm"
+                            attrs="{'invisible': [('progress', '=', 'confirmed')]}"/>
+                    <field name="policy" attrs="{'readonly': [('progress', '=', 'confirmed')]}"/>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_time_sheet_policy_tree">
+		<field name="name">time.sheet.policy.tree</field>
+		<field name="model">time.sheet.policy</field>
+		<field name="arch" type="xml">
+			<tree string="Time Sheet Policy">
+				<field name="name"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_time_sheet_policy">
+        <field name="name">Time Sheet Policy</field>
+        <field name="res_model">time.sheet.policy</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

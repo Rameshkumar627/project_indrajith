@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_employee_shift_from">
+		<field name="name">employee.shift.form</field>
+		<field name="model">employee.shift</field>
+		<field name="arch" type="xml">
+			<form string="Shift">
+                <header>
+                    <field name="progress" widget="statusbar" attrs="{'invisible': [('progress', '=', 'confirmed')]}"/>
+                </header>
+				<sheet>
+					<separator string="Shift" style="text-align:center;"/>
+                    <group>
+                        <field name="name" attrs="{'readonly': [('progress', '=', 'confirmed')]}"/>
+                        <field name="code" attrs="{'readonly': [('progress', '=', 'confirmed')]}"/>
+                        <field name="from_time" widget="float_time"
+                               attrs="{'readonly': [('progress', '=', 'confirmed')]}"/>
+                        <field name="till_time" widget="float_time"
+                               attrs="{'readonly': [('progress', '=', 'confirmed')]}"/>
+                        <field name="duration" widget="float_time"/>
+                        <field name="generated_by" invisible="1"/>
+						<field name="generated_on" invisible="1"/>
+                    </group>
+                    <button name="trigger_confirm" string="Confirm"
+                            attrs="{'invisible': [('progress', '=', 'confirmed')]}"/>
+                    <field name="comments" placeholder="Comments.."/>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_employee_shift_tree">
+		<field name="name">employee.shift.tree</field>
+		<field name="model">employee.shift</field>
+		<field name="arch" type="xml">
+			<tree string="Shift">
+				<field name="name"/>
+                <field name="code"/>
+                <field name="from_time"/>
+                <field name="till_time"/>
+                <field name="duration"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_employee_shift">
+        <field name="name">Shift</field>
+        <field name="res_model">employee.shift</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

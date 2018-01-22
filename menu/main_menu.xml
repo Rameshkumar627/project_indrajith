@@ -10,4 +10,7 @@
     <!--Store-->
     <menuitem name="Store" id="store_menu" sequence="30"/>
 
+    <!--Time Management-->
+    <menuitem name="Time Management" id="time_management_menu" sequence="40"/>
+
 </odoo>

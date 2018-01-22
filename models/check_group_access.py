@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from odoo import fields, models, api, _, exceptions
+from datetime import datetime
+import math
 
 
 class CheckGroupAccess(models.Model):
@@ -31,6 +33,32 @@ class CheckGroupAccess(models.Model):
                 'use_date_range': False,
             }
             obj.create(seq)
+
+    def days_in_date(self, from_date, till_date):
+        if not isinstance(from_date, datetime):
+            from_date = datetime.strptime(from_date, "%Y-%m-%d")
+        if not isinstance(till_date, datetime):
+            till_date = datetime.strptime(till_date, "%Y-%m-%d")
+
+        return (till_date - from_date).days
+
+    def check_date(self, from_date, till_date):
+        '''Check from date < till date'''
+        result = False
+        if not isinstance(from_date, datetime):
+            from_date = datetime.strptime(from_date, "%Y-%m-%d")
+        if not isinstance(till_date, datetime):
+            till_date = datetime.strptime(till_date, "%Y-%m-%d")
+
+        if (till_date - from_date).days >= 0:
+            result = True
+
+        return result
+
+    def float_time_convert(self, float_val):
+        factor = float_val < 0 and -1 or 1
+        val = abs(float_val)
+        return (factor * int(math.floor(val)), int(round((val % 1) * 60)))
 
 
 

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+	<!--Form View-->
+	<record model="ir.ui.view" id="view_employee_overtime_from">
+		<field name="name">employee.overtime.form</field>
+		<field name="model">employee.overtime</field>
+		<field name="arch" type="xml">
+			<form string="Overtime">
+                <header>
+                    <field name="progress" widget="statusbar" attrs="{'invisible': [('progress', '=', 'confirmed')]}"/>
+                </header>
+				<sheet>
+					<separator string="Overtime" style="text-align:center;"/>
+                    <field name="name" readonly="1"/>
+                    <group>
+                        <field name="date" attrs="{'readonly': [('progress', '=', 'confirmed')]}"/>
+                        <field name="from_time" widget="float_time"
+                               attrs="{'readonly': [('progress', '=', 'confirmed')]}"/>
+                        <field name="till_time" widget="float_time"
+                               attrs="{'readonly': [('progress', '=', 'confirmed')]}"/>
+                        <field name="duration" widget="float_time"/>
+                        <field name="generated_by" invisible="1"/>
+						<field name="generated_on" invisible="1"/>
+                        <field name="approved_by" invisible="1"/>
+						<field name="approved_on" invisible="1"/>
+                    </group>
+                    <button name="trigger_confirm" string="Confirm"
+                            attrs="{'invisible': [('progress', '=', 'confirmed')]}"/>
+                    <field name="comment" placeholder="Comments.."
+                           attrs="{'readonly': [('progress', '=', 'confirmed')]}"/>
+				</sheet>
+			</form>
+		</field>
+	</record>
+
+	<!--Tree View-->
+	<record model="ir.ui.view" id="view_employee_overtime_tree">
+		<field name="name">employee.overtime.tree</field>
+		<field name="model">employee.overtime</field>
+		<field name="arch" type="xml">
+			<tree string="Overtime">
+				<field name="name"/>
+                <field name="from_time"/>
+                <field name="till_time"/>
+                <field name="duration"/>
+                <field name="progress"/>
+			</tree>
+		</field>
+	</record>
+
+	<!--Action-->
+	<record model="ir.actions.act_window" id="action_employee_overtime">
+        <field name="name">Overtime</field>
+        <field name="res_model">employee.overtime</field>
+        <field name="view_type">form</field>
+        <field name="limit">50</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

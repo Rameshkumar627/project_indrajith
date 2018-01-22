@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--Shift Menu-->
+    <menuitem name="Shift"
+              id="employee_shift_menu"
+              parent="time_management_menu"
+              action="action_employee_shift"
+              sequence="10"/>
+
+    <!--Policy Menu-->
+    <menuitem name="Policy"
+              id="time_sheet_policy_menu"
+              parent="time_management_menu"
+              action="action_time_sheet_policy"
+              sequence="20"/>
+
+    <!--Over Time Menu-->
+    <menuitem name="Over Time"
+              id="employee_overtime_menu"
+              parent="time_management_menu"
+              action="action_employee_overtime"
+              sequence="30"/>
+
+</odoo>
